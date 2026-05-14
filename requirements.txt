@@ -1,0 +1,8 @@
+fredapi
+pandas
+requests
+yfinance
+flask
+plotly
+python-dotenv
+pytest

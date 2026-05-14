@@ -1,20 +1,19 @@
 # 上一轮总结
 
-迭代 2（2026-05-15）：响应用户新指令"延后所有需注册 API key 的指标"，重排 PLAN.md + 留痕 DECISIONS.md。
+迭代 3（2026-05-15）：完成 PLAN.md P0 第二项 — 创建 requirements.txt。
 
 本轮做了：
-- PLAN.md 顶部加"API key 延后规则"说明段
-- P0 中 `fred_client.py`、`yield_curve.py` 及其测试后缀加 `⏸ 待 API key`，`tests/test_fetch.py` 注明仅先覆盖 yf
-- P1 中 `10Y-3M / HY OAS / IG OAS / SOFR-IORB / FRA-OIS` 一并加 `⏸ 待 API key`
-- P0 新增决策项："首条上线指标改用什么数据源"，候选 VIX(yfinance) 或等 FRED key 后做 10Y-2Y，留给用户拍板
-- DECISIONS.md 追加 2026-05-15 一条"FRED 等数据源延后"决议
+- 写 `requirements.txt`：8 个依赖，无版本钉，按 PROMPT.md 白名单顺序
+  fredapi / pandas / requests / yfinance / flask / plotly / python-dotenv / pytest
+- 跑了一次健全性检查脚本（一次性，不入库）：解析 requirements.txt 取包名，
+  与 PROMPT.md 第 52 行白名单做集合对比 → missing=[], extra=[]，完全匹配
+- PLAN.md 第二项打勾
 
 测试情况：
-- 本轮纯文档/计划重排，无 src 代码改动，pytest 不适用
+- 本轮无 src 代码改动，未跑 pytest（无可测代码）
+- 配置文件用一次性集合校验代替单测，结果通过
 
 下一轮建议：
-- PLAN.md 顶上下一项是 `创建 requirements.txt`，本身不依赖任何 key，可直接做
-- 中间会碰到那个新增的"决策"项，到时候停下等用户拍板
-
-未决问题：
-- 等用户决定首条上线指标走 VIX(yfinance) 还是等 FRED key 后做 10Y-2Y
+- PLAN.md 顶上下一项是 `创建 .env.example`（FRED_API_KEY=, TZ=Asia/Shanghai）。文件已存在，
+  本轮只需检查内容是否合规，缺什么补什么 — 一轮即可结束
+- 之后陆续做 src/__init__、logger、config 都可推进，pytest 真正能跑要等到 db.py + tests/test_db.py 那一轮

@@ -10,7 +10,7 @@
 ## P0 — MVP 骨架（让系统能跑）
 
 - [x] (2026-05-15) git init + .gitignore + 首个 commit
-- [ ] 创建 requirements.txt（fredapi, pandas, requests, yfinance, flask, plotly, python-dotenv, pytest）
+- [x] (2026-05-15) 创建 requirements.txt（fredapi, pandas, requests, yfinance, flask, plotly, python-dotenv, pytest）
 - [ ] 创建 .env.example（FRED_API_KEY=, TZ=Asia/Shanghai）
 - [ ] src 目录加 __init__.py，建立模块边界（fetch / compute / store / web / utils）
 - [ ] src/utils/logger.py：统一 logging，输出到 logs/app.log + stdout
