@@ -19,8 +19,8 @@
 - [x] (2026-05-15) src/store/db.py：upsert_indicator(name, date, value, source) + get_latest(name) + get_series(name, days)
 - [x] (2026-05-15) tests/test_db.py：覆盖 upsert / 查询 / 重复插入
 - [ ] src/fetch/fred_client.py：封装 fredapi，单方法 fetch_series(series_id, start) ⏸ 待 API key
-- [ ] src/fetch/yf_client.py：封装 yfinance，单方法 fetch_close(ticker, start)
-- [ ] tests/test_fetch.py：mock 外部，验证返回结构（先只覆盖 yf_client，FRED 部分 ⏸ 待 API key 后补）
+- [x] (2026-05-15) src/fetch/yf_client.py：封装 yfinance，单方法 fetch_close(ticker, start)
+- [x] (2026-05-15) tests/test_fetch.py：mock 外部，验证返回结构（先只覆盖 yf_client，FRED 部分 ⏸ 待 API key 后补）
 - [ ] src/compute/thresholds.py：枚举三档（GREEN/YELLOW/RED）+ classify(value, low, high, direction) 通用函数
 - [ ] tests/test_thresholds.py：覆盖正向/反向/边界
 - [ ] 决策：P0 首条上线指标改用什么数据源（候选 A：VIX via yfinance；候选 B：等 FRED key 后再做 10Y-2Y）— 用户拍板后写 DECISIONS.md
