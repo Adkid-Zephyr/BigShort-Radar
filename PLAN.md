@@ -15,7 +15,7 @@
 - [x] (2026-05-15) src 目录加 __init__.py，建立模块边界（fetch / compute / store / web / utils）
 - [x] (2026-05-15) src/utils/logger.py：统一 logging，输出到 logs/app.log + stdout
 - [x] (2026-05-15) src/utils/config.py：从 .env 读配置，集中管理常量
-- [ ] src/store/db.py：SQLite 连接 + indicators 表 schema（id, name, date, value, source, ingested_at）
+- [x] (2026-05-15) src/store/db.py：SQLite 连接 + indicators 表 schema（id, name, date, value, source, ingested_at）
 - [ ] src/store/db.py：upsert_indicator(name, date, value, source) + get_latest(name) + get_series(name, days)
 - [ ] tests/test_db.py：覆盖 upsert / 查询 / 重复插入
 - [ ] src/fetch/fred_client.py：封装 fredapi，单方法 fetch_series(series_id, start) ⏸ 待 API key
