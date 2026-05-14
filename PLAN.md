@@ -16,8 +16,8 @@
 - [x] (2026-05-15) src/utils/logger.py：统一 logging，输出到 logs/app.log + stdout
 - [x] (2026-05-15) src/utils/config.py：从 .env 读配置，集中管理常量
 - [x] (2026-05-15) src/store/db.py：SQLite 连接 + indicators 表 schema（id, name, date, value, source, ingested_at）
-- [ ] src/store/db.py：upsert_indicator(name, date, value, source) + get_latest(name) + get_series(name, days)
-- [ ] tests/test_db.py：覆盖 upsert / 查询 / 重复插入
+- [x] (2026-05-15) src/store/db.py：upsert_indicator(name, date, value, source) + get_latest(name) + get_series(name, days)
+- [x] (2026-05-15) tests/test_db.py：覆盖 upsert / 查询 / 重复插入
 - [ ] src/fetch/fred_client.py：封装 fredapi，单方法 fetch_series(series_id, start) ⏸ 待 API key
 - [ ] src/fetch/yf_client.py：封装 yfinance，单方法 fetch_close(ticker, start)
 - [ ] tests/test_fetch.py：mock 外部，验证返回结构（先只覆盖 yf_client，FRED 部分 ⏸ 待 API key 后补）

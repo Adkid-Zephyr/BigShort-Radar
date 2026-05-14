@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import sqlite3
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Any, Dict, Iterator, List, Optional
 
 from src.utils.config import DB_PATH
 from src.utils.logger import get_logger
@@ -76,3 +77,99 @@ def open_db(db_path: Optional[Path] = None) -> Iterator[sqlite3.Connection]:
         yield conn
     finally:
         conn.close()
+
+
+# ── CRUD ─────────────────────────────────────────────────────
+
+def _utc_now_iso() -> str:
+    """当前 UTC 时间 ISO 字符串（秒级，带 Z）。"""
+    return datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def upsert_indicator(
+    conn: sqlite3.Connection,
+    name: str,
+    date: str,
+    value: float,
+    source: str,
+    ingested_at: Optional[str] = None,
+) -> None:
+    """写入或更新一条指标值（按 (name, date) 唯一）。
+
+    入参：
+        conn: 已开 schema 的连接
+        name: 指标 name（如 yield_curve_10y2y）
+        date: 指标日期，ISO YYYY-MM-DD
+        value: 数值
+        source: 数据源（如 FRED:T10Y2Y / YF:^VIX）
+        ingested_at: 入库 UTC 时间戳；缺省取当前 UTC
+    返回：无
+    异常：
+        sqlite3.Error 写入失败时抛
+    """
+    ts = ingested_at or _utc_now_iso()
+    with conn:
+        conn.execute(
+            """
+            INSERT INTO indicators (name, date, value, source, ingested_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(name, date) DO UPDATE SET
+                value=excluded.value,
+                source=excluded.source,
+                ingested_at=excluded.ingested_at
+            """,
+            (name, date, float(value), source, ts),
+        )
+
+
+def get_latest(conn: sqlite3.Connection, name: str) -> Optional[Dict[str, Any]]:
+    """返回某指标最新一条记录（按 date 倒序），无则 None。
+
+    入参：
+        conn: 连接
+        name: 指标 name
+    返回：
+        dict 或 None
+    异常：
+        sqlite3.Error
+    """
+    cur = conn.execute(
+        "SELECT name, date, value, source, ingested_at FROM indicators "
+        "WHERE name = ? ORDER BY date DESC LIMIT 1",
+        (name,),
+    )
+    row = cur.fetchone()
+    return dict(row) if row else None
+
+
+def get_series(
+    conn: sqlite3.Connection, name: str, days: Optional[int] = None
+) -> List[Dict[str, Any]]:
+    """返回某指标的历史序列（按 date 升序）。
+
+    入参：
+        conn: 连接
+        name: 指标 name
+        days: 仅取最近 N 天；缺省返回全部
+    返回：
+        list[dict]，可能为空
+    异常：
+        sqlite3.Error
+    """
+    if days is not None and days > 0:
+        cur = conn.execute(
+            """
+            SELECT name, date, value, source, ingested_at FROM indicators
+            WHERE name = ?
+              AND date >= date('now', ?)
+            ORDER BY date ASC
+            """,
+            (name, f"-{int(days)} days"),
+        )
+    else:
+        cur = conn.execute(
+            "SELECT name, date, value, source, ingested_at FROM indicators "
+            "WHERE name = ? ORDER BY date ASC",
+            (name,),
+        )
+    return [dict(r) for r in cur.fetchall()]
