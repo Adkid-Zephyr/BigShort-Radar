@@ -1,0 +1,27 @@
+# Virtual env
+.venv/
+venv/
+
+# Data & logs
+data/*.sqlite
+data/*.sqlite-journal
+logs/*.log
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Ralph runtime
+.ralph/iteration.txt
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
