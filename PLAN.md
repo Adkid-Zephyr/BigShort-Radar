@@ -32,7 +32,7 @@
 - [x] (2026-05-15) templates/index.html：极简表格，颜色 inline style
 - [x] (2026-05-15) scripts/daily_fetch.py：跑一遍所有已注册 fetcher，写入 DB
 - [x] (2026-05-15) README 跑通指南：venv → pip → .env → daily_fetch → flask run，本地 http://localhost:5050 打开能看到 1 个指标
-- [ ] 用户验收里程碑：localhost:5050 看到第一条绿色/黄色指标
+- [x] (2026-05-15) 用户验收里程碑：localhost:5050 看到第一条绿色/黄色指标 → VIX 17.26 GREEN（2026-05-14 收盘）
 
 ## P1 — 加指标（每个一轮，每个都包含 fetch + classify + 测试 + INDICATORS.md 翻译卡占位）
 
