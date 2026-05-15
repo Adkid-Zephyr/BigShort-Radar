@@ -17,6 +17,7 @@ from typing import Callable, List, NamedTuple
 
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
+from src.compute.indicators import sofr_iorb as sofr_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import vix_term_structure as vts_ind
 from src.compute.indicators import yield_curve as yc_ind
@@ -40,6 +41,7 @@ FETCHERS: List[Fetcher] = [
     Fetcher(name="hy_oas", run=hyoas_ind.fetch_and_store),
     Fetcher(name="ig_oas", run=igoas_ind.fetch_and_store),
     Fetcher(name="vix_term_structure", run=vts_ind.fetch_and_store),
+    Fetcher(name="sofr_iorb", run=sofr_ind.fetch_and_store),
 ]
 
 

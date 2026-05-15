@@ -92,6 +92,19 @@
 - **翻译卡**：待用户补
 - **最近一次校准**：待开发后填
 
+### sofr_iorb
+- **代码**：sofr_iorb
+- **数据源**：FRED:SOFR - FRED:IORB（取差值绝对值）
+- **更新频率**：日
+- **计算口径**：value = |SOFR - IORB| × 100（以 bp 为单位；FRED 原值是 %，乘 100 转 bp）
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：< 5 bp（紧贴 IORB，流动性正常）
+  - YELLOW：5 – 15 bp（异常信号）
+  - RED：> 15 bp（货币市场失灵，2019/9 回购危机 SOFR 偏离 +300bp）
+- **阈值依据**：联储用 IORB 上限+ON RRP 下限框 SOFR，正常情况 abs(spread)<5bp；2019/9 回购危机是历史标志性偏离事件（DECISIONS.md 2026-05-15 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：待开发后填
+
 ---
 
 ## P1 指标占位（开发到对应 PLAN 项时由模型创建条目，翻译卡留"待用户补"）
@@ -103,7 +116,7 @@
 - ig_oas
 - vix
 - vix_term_structure  ✅ 已开发（见上）
-- sofr_iorb
+- sofr_iorb  ✅ 已开发（见上）
 - fra_ois
 - shiller_pe
 - buffett_indicator
