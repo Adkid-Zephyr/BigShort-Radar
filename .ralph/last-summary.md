@@ -1,36 +1,31 @@
 # 上一轮总结
 
-迭代 21（2026-05-15）：store helper 抽象 + 三处回填，"重复三次再抽象"原则落地。
+迭代 22（2026-05-15）：HY OAS 上线，第四条指标，dashboard 加入信用维度。
 
 本轮做了：
-- src/store/db.py 新增 `upsert_series_from_pandas(conn, name, source, series) -> int`
-  - 抽象自 vix.py / yield_curve.py / yield_curve_10y3m.py 共用循环
-  - NaN 检测用 `v != v`（不依赖 math），Inf 直接比较——db.py 维持零外部库
-  - None / 空 series → 返回 0；单行错误（无法转 float / NaN / Inf）跳过+log
-- 三处指标文件 fetch_and_store 简化为单行调用 helper：
-  - vix.py：80 行 → 58 行（去掉 math 导入与遍历循环）
-  - yield_curve.py：80 行 → 58 行（同上，去掉手册段）
-  - yield_curve_10y3m.py：80 行 → 58 行（同上，去掉延后注释）
-- tests/test_db.py 补 5 个 helper 用例：写入/None/空/NaN+Inf 跳过/幂等
-- DECISIONS.md 追加 iter 21 ADR
+- DECISIONS.md 追加 ADR：HY OAS 阈值 GREEN<4 / YELLOW 4–8 / RED>8（up 方向）
+  历史分位依据：平静期 3–4%（2017、2021）、紧张期 5–7%（2022 末）、危机期 ≥10%（2008=18 / 2020 春=11）
+- INDICATORS.md：新增 hy_oas 完整条目，P1 占位列表标记 ✅
+- src/compute/indicators/hy_oas.py：FRED:BAMLH0A0HYM2 → fetch + classify + upsert
+  - NAME=hy_oas，DIRECTION=up，LOW=4.0 HIGH=8.0
+  - 直接用 store helper（iter 21 抽出来的 `upsert_series_from_pandas`），文件 60 行，最简
+- tests/test_hy_oas.py：5 classify + 4 fetch_and_store
+- src/web/app.py：注册 "HY OAS 高收益债利差"
+- scripts/daily_fetch.py：FETCHERS 加 hy_oas
 
 测试情况：
-- pytest 共 88 通过 / 0 失败 / 0 skip（+5）
-- 三处指标既有测试零回归（mock 路径仍走 fetch_and_store → helper）
-- db.py 233 行（< 300 阈值线）
+- pytest 共 97 通过 / 0 失败 / 0 skip（+9）
+- helper 抽象的优势已显现：本指标只新增 60 行代码就完成功能 + 测试
 
-git：iter 20 d8006bf → iter 21 待 commit。
+git：iter 21 ebb7f3c → iter 22 待 commit。
 
 下一项 PLAN 顶上的 `[ ]`：
-- **P1 第三项：HY OAS（FRED: BAMLH0A0HYM2）**
+- **P1 第四项：IG OAS（FRED: BAMLC0A0CM，投资级利差）**
 
-实现路径（用新 helper，每个指标文件预期 ~58 行）：
-- 新文件 `src/compute/indicators/hy_oas.py`，方向 up（OAS 利差越宽越危险，信用市场紧张）
-- 阈值待 ADR：参考历史经验 GREEN <4% / YELLOW 4–8% / RED >8%（高收益债 OAS 单位是百分点）
-  危机时 HY OAS 飙到 10%+（2008 = 18%、2020 春 = 11%、2022 末 = 5.8%）。需要拍板。
-- INDICATORS.md 加完整条目；DECISIONS.md 备案阈值依据
+实现路径（用 helper，结构与 hy_oas 同款）：
+- 新文件 `src/compute/indicators/ig_oas.py`，方向 up
+- 阈值 ADR（推荐路线下一轮直接落）：IG OAS 历史分位远窄于 HY——平静期 0.8–1.5%（2021）、紧张期 2–3%（2022 末）、危机期 ≥5%（2008=6.5 / 2020 春=4.0）。推荐 GREEN <1.5 / YELLOW 1.5–3 / RED >3
+- INDICATORS.md 加完整条目；DECISIONS.md 备案
 - web/app.py 与 daily_fetch.py 同步注册
 
-下一轮决策点：HY OAS 阈值切点。
-推荐：GREEN <4 / YELLOW 4–8 / RED >8（保守口径，利差 8%+ 意味着市场已定价显著违约风险）。
-按用户"一直走推荐路线"指令，下一句"继续"将直接按此方案落地，无需再问。
+按用户"一直走推荐路线"指令，下一句"继续"将直接按上述方案落地 iter 23。

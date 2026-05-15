@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List
 
 from flask import Flask, render_template
 
+from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import yield_curve as yc_ind
 from src.compute.indicators import yield_curve_10y3m as yc3m_ind
@@ -44,6 +45,11 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "name": yc3m_ind.NAME,
         "label": "10Y-3M 收益率曲线",
         "classify": yc3m_ind.classify_value,
+    },
+    {
+        "name": hyoas_ind.NAME,
+        "label": "HY OAS 高收益债利差",
+        "classify": hyoas_ind.classify_value,
     },
 ]
 

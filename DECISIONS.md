@@ -17,3 +17,4 @@
 - P0 首条上线指标走 **VIX via yfinance**（不需 API key，能立即让里程碑跑通）。FRED 路径并行推进，等用户给 key 后再做 10Y-2Y
 - **yield_curve_10y3m 阈值采用 A 案**（与 10Y-2Y 同口径）：GREEN >0.5 / YELLOW 0–0.5 / RED <0，方向 down。理由：保持收益率曲线类指标横向可比；10Y-3M 历史波幅虽更大，但同切分有助于 dashboard 一眼看出"曲线维度"整体颜色一致性。后续若样本数据显示阈值需校准，再走 ADR 调整
 - **iter 21 store helper 抽象触发**："重复三次再抽象"原则——vix.py / yield_curve.py / yield_curve_10y3m.py 三处共用的"遍历 series + NaN/Inf 跳过 + upsert"循环抽到 `src/store/db.py::upsert_series_from_pandas(conn, name, source, series) -> int`。三处 fetch_and_store 改为单行调用。db.py 保持零外部库依赖（NaN 用 `v != v` 判，Inf 用直接比较）
+- **hy_oas 阈值采用推荐方案**：GREEN <4 / YELLOW 4–8 / RED >8，方向 up。理由：HY OAS（高收益债期权调整利差，单位百分点）历史分位——平静期 3–4%（2017、2021）、紧张期 5–7%（2022 末）、危机期 ≥10%（2008=18 / 2020 春=11）。8% 是市场已定价显著违约风险的临界点，4% 是利差正常上沿。后续视实测样本走 ADR 校准
