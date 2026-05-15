@@ -64,11 +64,11 @@
 
 ## P3.5 — 日本与跨市场维度（崩盘剧本必备）
 
-- [ ] 日本 10Y 国债收益率（FRED:IRLTLT01JPM636N 月度 / yfinance ^TNX-JP 不可用）
+- [x] (2026-05-15) USDJPY（FRED:DEXJPUS）— carry trade 解除信号，阈值 145/160
+- [x] (2026-05-15) DXY 美元广义指数（FRED:DTWEXBGS）— 美元强弱反向交叉，阈值 110/125
+- [x] (2026-05-15) 日本 10Y 国债收益率（FRED:IRLTLT01JPM156N 月值）— YCC 退出后真正爆点，阈值 1.0/2.0
 - [ ] 日本 30Y 国债收益率（YCC 退出后真正爆点）
-- [ ] USDJPY（yfinance:JPY=X）— carry trade 解除信号
-- [ ] DXY 美元指数（yfinance: DX-Y.NYB）— 美元强弱反向交叉验证
-- [ ] BoJ 资产规模（FRED:BOJASSETSWE 月度）— QE 量级
+- [ ] BoJ 资产规模 YoY（FRED:JPNASSETS 派生指标，QE/QT 转折点）
 - [ ] 美元互换基差（USD basis swap）— 离岸美元短缺
 - [ ] 国债基差交易杠杆（CFTC TFF 周报）
 

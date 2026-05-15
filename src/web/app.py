@@ -13,9 +13,12 @@ from typing import Any, Callable, Dict, List
 from flask import Flask, render_template
 
 from src.compute import briefing as bf
+from src.compute.indicators import dxy as dxy_ind
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
+from src.compute.indicators import jp_10y as jp10y_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
+from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import vix_term_structure as vts_ind
 from src.compute.indicators import yield_curve as yc_ind
@@ -82,10 +85,29 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "classify": sofr_ind.classify_value,
         "group": "流动性",
     },
+    # 跨市场 / 日本维度
+    {
+        "name": usdjpy_ind.NAME,
+        "label": "USDJPY 美元日元",
+        "classify": usdjpy_ind.classify_value,
+        "group": "跨市场",
+    },
+    {
+        "name": dxy_ind.NAME,
+        "label": "DXY 美元广义指数",
+        "classify": dxy_ind.classify_value,
+        "group": "跨市场",
+    },
+    {
+        "name": jp10y_ind.NAME,
+        "label": "日本 10Y 国债收益率",
+        "classify": jp10y_ind.classify_value,
+        "group": "跨市场",
+    },
 ]
 
 # 分组展示顺序（左到右、上到下；用户视角通常先看波动率再看信用再看曲线再看流动性）
-_GROUP_ORDER = ["波动率", "信用", "曲线", "流动性", "估值"]
+_GROUP_ORDER = ["波动率", "信用", "曲线", "流动性", "跨市场", "估值"]
 
 
 # Level → 颜色（Tailwind 风格的色值，inline style 用）
