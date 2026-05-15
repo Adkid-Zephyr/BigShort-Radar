@@ -1,15 +1,17 @@
 """fetch 层测试：用 mock 替换外部库，不打真实网络。
 
-本轮只覆盖 yf_client；fred_client 部分 ⏸ 待 API key 后补。
+覆盖 yf_client 与 fred_client。
 """
 from __future__ import annotations
 
 import sys
 import types
+from pathlib import Path
 
 import pytest
 
-from src.fetch import yf_client
+from src.fetch import fred_client, yf_client
+from src.utils.config import Settings
 
 
 def _install_fake_yfinance(monkeypatch, df):
@@ -71,3 +73,78 @@ def test_fetch_close_returns_none_on_exception(monkeypatch):
 
     s = yf_client.fetch_close("^VIX", start="2026-05-13")
     assert s is None
+
+
+# ── fred_client ──────────────────────────────────────────────
+def _fake_settings(key="testkey"):
+    return Settings(
+        fred_api_key=key,
+        tz="Asia/Shanghai",
+        flask_port=5050,
+        flask_debug=False,
+        db_path=Path("/tmp/x.sqlite"),
+        logs_dir=Path("/tmp"),
+        project_root=Path("/tmp"),
+    )
+
+
+def _install_fake_fredapi(monkeypatch, series_or_exc):
+    """注入伪 fredapi 模块，Fred(api_key=...).get_series(...) 返回指定值或抛异常。"""
+    fake = types.ModuleType("fredapi")
+
+    class FakeFred:
+        def __init__(self, api_key=None):
+            assert api_key, "Fred should receive an api_key"
+
+        def get_series(self, series_id, observation_start=None, observation_end=None):
+            if isinstance(series_or_exc, Exception):
+                raise series_or_exc
+            return series_or_exc
+
+    fake.Fred = FakeFred  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "fredapi", fake)
+
+
+def test_fetch_series_returns_series_on_success(monkeypatch):
+    pd = pytest.importorskip("pandas")
+    s = pd.Series(
+        [0.45, 0.30, -0.10],
+        index=pd.to_datetime(["2026-05-13", "2026-05-14", "2026-05-15"]),
+    )
+    _install_fake_fredapi(monkeypatch, s)
+
+    out = fred_client.fetch_series("T10Y2Y", start="2026-05-13", settings=_fake_settings())
+    assert out is not None
+    assert out.name == "value"
+    assert len(out) == 3
+    assert list(out.index) == sorted(list(out.index))
+
+
+def test_fetch_series_returns_none_when_no_key():
+    out = fred_client.fetch_series("T10Y2Y", start="2026-05-13", settings=_fake_settings(key=None))
+    assert out is None
+
+
+def test_fetch_series_returns_none_when_fredapi_missing(monkeypatch):
+    monkeypatch.setitem(sys.modules, "fredapi", None)
+    out = fred_client.fetch_series("T10Y2Y", start="2026-05-13", settings=_fake_settings())
+    assert out is None
+
+
+def test_fetch_series_returns_none_on_exception(monkeypatch):
+    _install_fake_fredapi(monkeypatch, RuntimeError("403 Forbidden"))
+    out = fred_client.fetch_series("T10Y2Y", start="2026-05-13", settings=_fake_settings())
+    assert out is None
+
+
+def test_fetch_series_drops_nan(monkeypatch):
+    pd = pytest.importorskip("pandas")
+    s = pd.Series(
+        [0.45, float("nan"), 0.30],
+        index=pd.to_datetime(["2026-05-13", "2026-05-14", "2026-05-15"]),
+    )
+    _install_fake_fredapi(monkeypatch, s)
+
+    out = fred_client.fetch_series("T10Y2Y", start="2026-05-13", settings=_fake_settings())
+    assert out is not None
+    assert len(out) == 2  # NaN 被 dropna 去掉

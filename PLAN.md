@@ -3,9 +3,7 @@
 > 工作约定：每轮只做最上面一个 `[ ]`。完成后改成 `[x] (YYYY-MM-DD)`。
 > 任务粒度需控制在单轮 30 分钟内完成；过粗的先拆。
 >
-> **API key 延后规则（2026-05-15 用户指令）**：所有需要注册账号才能拿到 key 的数据源
-> （目前主要是 FRED）相关任务整体延后到用户一次性把 key 写进 `.env` 之后再做。
-> 受影响项后缀标 `⏸ 待 API key`，遇到时跳过往下找下一个未阻塞的 `[ ]`。
+> **API key 状态**：FRED key 已写入 `.env`（2026-05-15 用户提供）。原先标 `⏸ 待 API key` 的项已全部解锁。
 
 ## P0 — MVP 骨架（让系统能跑）
 
@@ -18,16 +16,16 @@
 - [x] (2026-05-15) src/store/db.py：SQLite 连接 + indicators 表 schema（id, name, date, value, source, ingested_at）
 - [x] (2026-05-15) src/store/db.py：upsert_indicator(name, date, value, source) + get_latest(name) + get_series(name, days)
 - [x] (2026-05-15) tests/test_db.py：覆盖 upsert / 查询 / 重复插入
-- [ ] src/fetch/fred_client.py：封装 fredapi，单方法 fetch_series(series_id, start) ⏸ 待 API key
+- [x] (2026-05-15) src/fetch/fred_client.py：封装 fredapi，单方法 fetch_series(series_id, start)（同轮补完 tests/test_fetch.py 的 FRED 部分，5 个新用例）
 - [x] (2026-05-15) src/fetch/yf_client.py：封装 yfinance，单方法 fetch_close(ticker, start)
-- [x] (2026-05-15) tests/test_fetch.py：mock 外部，验证返回结构（先只覆盖 yf_client，FRED 部分 ⏸ 待 API key 后补）
+- [x] (2026-05-15) tests/test_fetch.py：mock 外部，验证返回结构（yf_client + fred_client 全覆盖）
 - [x] (2026-05-15) src/compute/thresholds.py：枚举三档（GREEN/YELLOW/RED）+ classify(value, low, high, direction) 通用函数
 - [x] (2026-05-15) tests/test_thresholds.py：覆盖正向/反向/边界
 - [x] (2026-05-15) 决策：P0 首条上线指标改用什么数据源 → 选 A：VIX via yfinance（DECISIONS.md 已记）。FRED 路径并行推进，等用户给 key 后开做
 - [x] (2026-05-15) src/compute/indicators/vix.py：VIX（yfinance: ^VIX）实现 fetch+classify，写入 DB
 - [x] (2026-05-15) tests/test_vix.py：mock yf_client，覆盖 fetch+classify+写库
-- [ ] src/compute/indicators/yield_curve.py：10Y-2Y（FRED: T10Y2Y）实现 fetch+classify ⏸ 待 API key
-- [ ] tests/test_yield_curve.py ⏸ 待 API key
+- [ ] src/compute/indicators/yield_curve.py：10Y-2Y（FRED: T10Y2Y）实现 fetch+classify
+- [ ] tests/test_yield_curve.py
 - [x] (2026-05-15) src/web/app.py：Flask 起一页 / 路由 → 列出所有已实现指标，名/当前值/颜色/更新时间
 - [x] (2026-05-15) templates/index.html：极简表格，颜色 inline style
 - [x] (2026-05-15) scripts/daily_fetch.py：跑一遍所有已注册 fetcher，写入 DB
@@ -36,12 +34,12 @@
 
 ## P1 — 加指标（每个一轮，每个都包含 fetch + classify + 测试 + INDICATORS.md 翻译卡占位）
 
-- [ ] 10Y-3M（FRED: T10Y3M）⏸ 待 API key
-- [ ] HY OAS（FRED: BAMLH0A0HYM2）⏸ 待 API key
-- [ ] IG OAS（FRED: BAMLC0A0CM）⏸ 待 API key
+- [ ] 10Y-3M（FRED: T10Y3M）
+- [ ] HY OAS（FRED: BAMLH0A0HYM2）
+- [ ] IG OAS（FRED: BAMLC0A0CM）
 - [ ] VIX 期限结构（VIX vs VIX3M / VIX6M）
-- [ ] SOFR-IORB（FRED: SOFR - IORB）⏸ 待 API key
-- [ ] FRA-OIS（手动算或找代理序列）⏸ 待 API key（候选数据源都依赖 FRED）
+- [ ] SOFR-IORB（FRED: SOFR - IORB）
+- [ ] FRA-OIS（手动算或找代理序列）
 - [ ] Shiller PE（Robert Shiller 网站 CSV）
 - [ ] Buffett Indicator（Wilshire 5000 / GDP）
 - [ ] Dashboard 加分组：曲线 / 信用 / 估值 / 流动性 / 波动率
