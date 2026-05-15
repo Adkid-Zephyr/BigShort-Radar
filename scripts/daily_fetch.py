@@ -18,6 +18,7 @@ import sys
 from typing import Callable, List, NamedTuple
 
 from src.compute import briefing as bf
+from src.compute import risk_score as rs
 from src.compute.indicators import dxy as dxy_ind
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
@@ -100,6 +101,14 @@ def run(start: str, end=None, do_briefing: bool = True) -> int:
                 log.exception("[%s] 失败：%s", f.name, e)
                 failed += 1
         log.info("daily_fetch 抓取结束：%d 个 fetcher，%d 失败", len(FETCHERS), failed)
+
+        # 算综合风险分（永远先算，不依赖 LLM）
+        try:
+            score_result = rs.run_and_store(conn, _briefing_registry())
+            log.info("综合风险分 score=%.2f level=%s（缺失 %d 条）",
+                     score_result["score"], score_result["level"], len(score_result["missing"]))
+        except Exception as e:
+            log.exception("综合风险分计算异常（不影响主流程）：%s", e)
 
         if do_briefing:
             try:

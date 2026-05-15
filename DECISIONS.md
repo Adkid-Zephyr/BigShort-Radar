@@ -24,3 +24,4 @@
 - **iter 27 LLM 接入决策**：服务商=阿里百炼 Coding Plan（用户授权），协议=OpenAI 兼容 `/v1/chat/completions`，Auth=Bearer key 写 .env DASHSCOPE_API_KEY；模型 `qwen-max` 在 Coding Plan endpoint 实测不支持（400 invalid_parameter_error），改用 `qwen3-coder-plus`（实测可用，单次 ~300 字简报 prompt+output 19 tokens 量级）。依赖只用 requests（白名单内），不引 openai/anthropic SDK。失败优雅降级：LLM 不可用 daily_fetch 主流程不受影响
 
 - **iter 28 跨市场维度首批指标决策**：先上 USDJPY（FRED:DEXJPUS 145/160）、DXY 广义（FRED:DTWEXBGS 110/125）、日本 10Y（FRED:IRLTLT01JPM156N 月值 1.0/2.0）三条，方向均为 up。USDJPY 不走 yfinance（有 rate limit）走 FRED 官方日值。日本 10Y 用 OECD 月值 IRLTLT01JPM156N（FRED 没免费日值 JGB）。BoJ 资产规模（JPNASSETS）暂搁——绝对量级阈值意义低，需要做"同比变化率"派生指标，等综合温度计做完后回头补
+- **iter 29 综合温度计权重决策**：曲线 25% / 信用 25% / 跨市场 20% / 流动性 15% / 波动率 15%，合计 100%。理由：曲线是衰退最强先行（10Y-2Y 倒挂后 ~14 个月衰退）；信用是危机定价最快反应；跨市场抓 2025-26 主剧本（日元 carry / 强美元）；流动性是危机引爆器但平时低噪；波动率作弱权重（VIX 偶尔失灵）。Level → 分数线性（GREEN=0 / YELLOW=50 / RED=100），同 group 内算术平均，再按权重加权。总分阈值：< 25 GREEN / 25-65 YELLOW / ≥ 65 RED

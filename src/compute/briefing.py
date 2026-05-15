@@ -58,6 +58,13 @@ def build_snapshot(conn: sqlite3.Connection, registry: List[Dict[str, Any]]) -> 
         多行字符串，每行一条指标。例如：
         「[波动率] VIX 恐慌指数: 17.26 GREEN（5/14） | 7d 前 17.0 GREEN | 阈值 GREEN<20 / YELLOW 20-30 / RED>30」
     """
+    # 顶部加综合温度计上下文（懒导入避免循环引用）
+    try:
+        from src.compute import risk_score as rs
+        latest_score = rs.get_latest_risk_score(conn)
+    except Exception:
+        latest_score = None
+
     lines: List[str] = []
     today_iso = _date.today().isoformat()
     seven_days_ago = (_date.today() - timedelta(days=7)).isoformat()
@@ -84,7 +91,20 @@ def build_snapshot(conn: sqlite3.Connection, registry: List[Dict[str, Any]]) -> 
 
     if not lines:
         return "（注册表为空）"
-    header = f"日期：{today_iso}\n指标快照（共 {len(lines)} 条）：\n"
+
+    score_line = ""
+    if latest_score:
+        bd = latest_score.get("breakdown", {})
+        bd_str = "、".join(
+            f"{g} {info['score']:.0f}/100" for g, info in bd.items()
+        ) if isinstance(bd, dict) else ""
+        score_line = (
+            f"\n综合风险温度计：{latest_score['score']:.1f}/100 ({latest_score['level']})"
+            + (f"\n维度分：{bd_str}" if bd_str else "")
+            + "\n"
+        )
+
+    header = f"日期：{today_iso}\n指标快照（共 {len(lines)} 条）：{score_line}\n"
     return header + "\n".join(lines)
 
 
