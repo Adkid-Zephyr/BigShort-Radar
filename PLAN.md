@@ -39,13 +39,10 @@
 - [x] (2026-05-15) IG OAS（FRED: BAMLC0A0CM）— 阈值 GREEN<1.5 / YELLOW 1.5–3 / RED>3（DECISIONS.md 2026-05-15 ADR）
 - [x] (2026-05-15) VIX 期限结构（VIX vs VIX3M / VIX6M）— 比值 ^VIX/^VIX3M 阈值 GREEN<0.95 / YELLOW 0.95–1.0 / RED>1.0
 - [x] (2026-05-15) SOFR-IORB（FRED: SOFR - IORB）— |spread| bp，阈值 GREEN<5 / YELLOW 5–15 / RED>15
-- [ ] FRA-OIS（手动算或找代理序列）
-- [ ] VIX 期限结构（VIX vs VIX3M / VIX6M）
-- [ ] SOFR-IORB（FRED: SOFR - IORB）
-- [ ] FRA-OIS（手动算或找代理序列）
-- [ ] Shiller PE（Robert Shiller 网站 CSV）
-- [ ] Buffett Indicator（Wilshire 5000 / GDP）
-- [ ] Dashboard 加分组：曲线 / 信用 / 估值 / 流动性 / 波动率
+- [ ] FRA-OIS（代理序列）— ⏸ 决策点：LIBOR 退役后 FRA 已停发，FRED 无现成序列。候选代理待用户拍板
+- [ ] Shiller PE（Robert Shiller 网站 CSV）— ⏸ 数据格式 .xls 需要 xlrd/openpyxl（不在白名单），触发暂停清单。可选绕路：multpl.com HTML 抓取（仅当前值，无历史）；或加白名单依赖。待用户拍
+- [ ] Buffett Indicator（Wilshire 5000 / GDP）— ⏸ 决策点：FRED 有 WILL5000PRFC（日）和 GDP（季度），需要"日值 / 季度值前向填充"对齐逻辑。先确认是否值得做（季度 GDP 滞后 3 个月，作为崩盘监控敏感度低）
+- [x] (2026-05-15) Dashboard 加分组：曲线 / 信用 / 估值 / 流动性 / 波动率 — 7 条指标分到 4 组，组 header 显示组内最严等级
 
 ## P2 — 跨市场联动
 

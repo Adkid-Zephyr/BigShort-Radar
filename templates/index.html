@@ -14,58 +14,115 @@
     }
     h1 { font-size: 22px; font-weight: 500; margin: 0 0 4px; }
     p.sub { color: #9ca3af; font-size: 13px; margin: 0 0 24px; }
-    table { border-collapse: collapse; width: 100%; max-width: 880px; }
+    .group {
+      max-width: 880px;
+      margin: 0 0 28px;
+    }
+    .group-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid #1f2937;
+      margin-bottom: 4px;
+    }
+    .group-name {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+    .group-level {
+      font-size: 11px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      vertical-align: middle;
+    }
+    .dot-sm {
+      width: 8px;
+      height: 8px;
+    }
+    table { border-collapse: collapse; width: 100%; }
     th, td {
-      padding: 12px 14px;
+      padding: 10px 12px;
       text-align: left;
       border-bottom: 1px solid #1f2937;
       font-size: 14px;
     }
     th { color: #9ca3af; font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
     td.value { font-variant-numeric: tabular-nums; font-weight: 500; }
-    .dot {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
     .level { font-size: 12px; color: #9ca3af; }
     .empty { color: #6b7280; font-style: italic; }
+    .legend {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: #9ca3af;
+      margin: 24px 0 0;
+      max-width: 880px;
+    }
+    .legend span { display: flex; align-items: center; gap: 6px; }
   </style>
 </head>
 <body>
   <h1>Finance Radar</h1>
-  <p class="sub">市场风险温度计 · 数据从 SQLite 读取，颜色按各指标默认阈值实时分类</p>
-  <table>
-    <thead>
-      <tr>
-        <th>指标</th>
-        <th>当前值</th>
-        <th>等级</th>
-        <th>日期</th>
-        <th>来源</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for r in rows %}
-      <tr>
-        <td>
-          <span class="dot" style="background: {{ r.color }};"></span>
-          {{ r.label }}
-        </td>
-        {% if r.value is none %}
-          <td class="empty" colspan="4">暂无数据，先跑 daily_fetch</td>
-        {% else %}
-          <td class="value">{{ "%.2f"|format(r.value) }}</td>
-          <td class="level" style="color: {{ r.color }};">{{ r.level }}</td>
-          <td>{{ r.date }}</td>
-          <td>{{ r.source }}</td>
-        {% endif %}
-      </tr>
+  <p class="sub">市场风险温度计 · 数据从 SQLite 读取，颜色按各指标默认阈值实时分类 · 分组聚合"曲线/信用/流动性/波动率"维度</p>
+
+  {% if groups %}
+    {% for g in groups %}
+      <div class="group">
+        <div class="group-header">
+          <span class="dot dot-sm" style="background: {{ g.header_color }};"></span>
+          <span class="group-name">{{ g.group }}</span>
+          {% if g.header_level %}
+            <span class="group-level" style="color: {{ g.header_color }};">最严：{{ g.header_level }}</span>
+          {% endif %}
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>指标</th>
+              <th>当前值</th>
+              <th>等级</th>
+              <th>日期</th>
+              <th>来源</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in g.rows %}
+              <tr>
+                <td>
+                  <span class="dot" style="background: {{ r.color }};"></span>
+                  {{ r.label }}
+                </td>
+                {% if r.value is none %}
+                  <td class="empty" colspan="4">暂无数据，先跑 daily_fetch</td>
+                {% else %}
+                  <td class="value">{{ "%.2f"|format(r.value) }}</td>
+                  <td class="level" style="color: {{ r.color }};">{{ r.level }}</td>
+                  <td>{{ r.date }}</td>
+                  <td>{{ r.source }}</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% endfor %}
-    </tbody>
-  </table>
+  {% else %}
+    <p class="empty">尚未注册任何指标</p>
+  {% endif %}
+
+  <div class="legend">
+    <span><span class="dot dot-sm" style="background:#22c55e"></span>GREEN 平静</span>
+    <span><span class="dot dot-sm" style="background:#eab308"></span>YELLOW 紧张</span>
+    <span><span class="dot dot-sm" style="background:#ef4444"></span>RED 危机定价</span>
+  </div>
 </body>
 </html>
