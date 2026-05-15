@@ -34,7 +34,7 @@
 
 ## P1 — 加指标（每个一轮，每个都包含 fetch + classify + 测试 + INDICATORS.md 翻译卡占位）
 
-- [ ] 10Y-3M（FRED: T10Y3M）
+- [x] (2026-05-15) 10Y-3M（FRED: T10Y3M）— A 案阈值（与 10Y-2Y 同口径，DECISIONS.md 2026-05-15 ADR）
 - [ ] HY OAS（FRED: BAMLH0A0HYM2）
 - [ ] IG OAS（FRED: BAMLC0A0CM）
 - [ ] VIX 期限结构（VIX vs VIX3M / VIX6M）

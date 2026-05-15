@@ -17,6 +17,7 @@ from typing import Callable, List, NamedTuple
 
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import yield_curve as yc_ind
+from src.compute.indicators import yield_curve_10y3m as yc3m_ind
 from src.store import db as dbmod
 from src.utils.logger import get_logger
 
@@ -32,6 +33,7 @@ class Fetcher(NamedTuple):
 FETCHERS: List[Fetcher] = [
     Fetcher(name="vix", run=vix_ind.fetch_and_store),
     Fetcher(name="yield_curve_10y2y", run=yc_ind.fetch_and_store),
+    Fetcher(name="yield_curve_10y3m", run=yc3m_ind.fetch_and_store),
 ]
 
 

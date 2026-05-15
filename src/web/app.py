@@ -14,6 +14,7 @@ from flask import Flask, render_template
 
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import yield_curve as yc_ind
+from src.compute.indicators import yield_curve_10y3m as yc3m_ind
 from src.compute.thresholds import Level
 from src.store import db as dbmod
 from src.utils.config import load_settings
@@ -38,6 +39,11 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "name": yc_ind.NAME,
         "label": "10Y-2Y 收益率曲线",
         "classify": yc_ind.classify_value,
+    },
+    {
+        "name": yc3m_ind.NAME,
+        "label": "10Y-3M 收益率曲线",
+        "classify": yc3m_ind.classify_value,
     },
 ]
 
