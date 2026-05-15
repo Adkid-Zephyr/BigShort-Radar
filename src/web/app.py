@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable, Dict, List
 
-from flask import Flask, render_template
+from flask import Flask, jsonify, render_template, request
 
 from src.compute import briefing as bf
 from src.compute import risk_score as rs
@@ -223,6 +223,51 @@ def create_app(db_path=None) -> Flask:
     @app.route("/healthz")
     def healthz():
         return {"status": "ok"}
+
+    @app.route("/api/chat", methods=["POST"])
+    def api_chat():
+        """对话接口：用户问题 + 当前指标快照 + 综合分 → LLM → JSON 返回。
+
+        请求 body：
+            {"messages": [{"role":"user","content":"..."}, ...]}
+            或 {"message": "..."}
+        响应：
+            {"reply": "...", "model": "qwen3-coder-plus"} 或 {"error": "..."}
+        """
+        from src.fetch import llm_client
+        from src.utils.config import load_settings
+
+        try:
+            data = request.get_json(silent=True) or {}
+        except Exception:
+            data = {}
+
+        # 兼容两种入参
+        msgs_in = data.get("messages")
+        if not msgs_in and data.get("message"):
+            msgs_in = [{"role": "user", "content": data["message"]}]
+        if not msgs_in:
+            return jsonify({"error": "缺少 message 或 messages 字段"}), 400
+
+        # 拼系统 prompt + 当前快照
+        target = app.config["DB_PATH"]
+        with dbmod.open_db(target) as conn:
+            snapshot = bf.build_snapshot(conn, _INDICATOR_REGISTRY)
+
+        system_prompt = (
+            "你是 Finance Radar 的市场风险助手。用户正在监控一份本地金融指标仪表盘。\n"
+            "回答必须基于下面给出的指标快照（含当前值、等级、7 天前对比、综合温度计分），不要编造历史价位与外部新闻。\n"
+            "若用户问的指标不在快照里，直接说『该指标不在当前监控范围』。\n"
+            "回答简洁、客观、第三人称、中文，必要时引用快照里的具体数字。\n\n"
+            f"=== 当前指标快照 ===\n{snapshot}\n=== 快照结束 ==="
+        )
+        messages = [{"role": "system", "content": system_prompt}] + list(msgs_in)
+
+        s = load_settings()
+        out = llm_client.chat(messages, settings=s, temperature=0.3)
+        if out is None:
+            return jsonify({"error": "LLM 调用失败（检查 .env DASHSCOPE_API_KEY 与网络）"}), 502
+        return jsonify({"reply": out, "model": s.llm_model or ""})
 
     return app
 

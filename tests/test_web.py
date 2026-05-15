@@ -91,3 +91,43 @@ def test_group_header_uses_worst_level(db_path):
         # 信用组里有 RED，组 header 应显示"最严：RED"
         # 简单断言：页面里"最严：RED"出现至少一次
         assert "最严：RED" in body
+
+
+# ── /api/chat（iter 30） ─────────────────────────────────────
+def test_chat_returns_400_when_no_message(client):
+    resp = client.post("/api/chat", json={})
+    assert resp.status_code == 400
+    assert "缺少" in resp.json.get("error", "")
+
+
+def test_chat_calls_llm_and_returns_reply(client, monkeypatch):
+    from src.fetch import llm_client
+    captured = {}
+
+    def fake_chat(messages, settings=None, model=None, temperature=0.3, timeout_sec=60):
+        captured["messages"] = messages
+        return "AI 回答内容"
+
+    monkeypatch.setattr(llm_client, "chat", fake_chat)
+    resp = client.post("/api/chat", json={"message": "现在最危险的是哪条？"})
+    assert resp.status_code == 200
+    assert resp.json["reply"] == "AI 回答内容"
+    # 系统 prompt 必须含快照
+    assert any("指标快照" in m["content"] for m in captured["messages"] if m["role"] == "system")
+
+
+def test_chat_returns_502_when_llm_fails(client, monkeypatch):
+    from src.fetch import llm_client
+    monkeypatch.setattr(llm_client, "chat",
+                        lambda messages, **kw: None)
+    resp = client.post("/api/chat", json={"message": "x"})
+    assert resp.status_code == 502
+    assert "失败" in resp.json["error"]
+
+
+def test_chat_renders_widget_in_html(client):
+    body = client.get("/").get_data(as_text=True)
+    # chatbot 浮窗 UI 应渲染
+    assert "chat-toggle" in body
+    assert "chat-panel" in body
+    assert "/api/chat" in body

@@ -135,6 +135,67 @@
       color: #9ca3af;
       margin-top: 4px;
     }
+
+    /* ── chatbot 浮窗 ─────────────────────────────────── */
+    #chat-toggle {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 52px; height: 52px; border-radius: 26px;
+      background: #2563eb; color: #fff; border: 0;
+      font-size: 22px; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+      z-index: 1000;
+    }
+    #chat-toggle:hover { background: #1d4ed8; }
+    #chat-panel {
+      position: fixed; bottom: 90px; right: 24px;
+      width: 360px; max-width: calc(100vw - 48px);
+      height: 480px; max-height: calc(100vh - 120px);
+      background: #11151a; border: 1px solid #1f2937; border-radius: 12px;
+      display: none; flex-direction: column;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+    #chat-panel.open { display: flex; }
+    .chat-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid #1f2937;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .chat-head h3 {
+      margin: 0; font-size: 13px; font-weight: 500; color: #e5e7eb;
+    }
+    .chat-head .chat-close {
+      background: none; border: 0; color: #9ca3af; cursor: pointer;
+      font-size: 18px; line-height: 1;
+    }
+    #chat-msgs {
+      flex: 1; overflow-y: auto; padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .msg { font-size: 13px; line-height: 1.6; }
+    .msg.user { align-self: flex-end; max-width: 85%;
+      background: #2563eb; color: #fff; padding: 8px 12px; border-radius: 12px 12px 4px 12px;
+      white-space: pre-wrap;
+    }
+    .msg.bot { align-self: flex-start; max-width: 90%;
+      background: #1f2937; color: #d1d5db; padding: 8px 12px; border-radius: 12px 12px 12px 4px;
+      white-space: pre-wrap;
+    }
+    .msg.sys { align-self: center; color: #6b7280; font-size: 11px; }
+    .chat-form {
+      border-top: 1px solid #1f2937; padding: 10px 12px;
+      display: flex; gap: 8px;
+    }
+    .chat-form input {
+      flex: 1; background: #0b0d10; border: 1px solid #1f2937; border-radius: 8px;
+      padding: 8px 12px; color: #e5e7eb; font-size: 13px; outline: none;
+    }
+    .chat-form input:focus { border-color: #2563eb; }
+    .chat-form button {
+      background: #2563eb; color: #fff; border: 0; border-radius: 8px;
+      padding: 0 16px; font-size: 13px; cursor: pointer;
+    }
+    .chat-form button:disabled { background: #374151; cursor: wait; }
   </style>
 </head>
 <body>
@@ -220,5 +281,77 @@
     <span><span class="dot dot-sm" style="background:#eab308"></span>YELLOW 紧张</span>
     <span><span class="dot dot-sm" style="background:#ef4444"></span>RED 危机定价</span>
   </div>
+
+  <!-- chatbot 浮窗 -->
+  <button id="chat-toggle" title="问 AI 解读当前指标">💬</button>
+  <div id="chat-panel">
+    <div class="chat-head">
+      <h3>风险助手 · 基于当前数据</h3>
+      <button class="chat-close" type="button" onclick="document.getElementById('chat-panel').classList.remove('open')">✕</button>
+    </div>
+    <div id="chat-msgs">
+      <div class="msg sys">问当前指标的任何问题，AI 会基于你 dashboard 上看到的真实数据回答。</div>
+    </div>
+    <form class="chat-form" id="chat-form">
+      <input id="chat-input" type="text" placeholder="比如：现在最危险的是哪条？" autocomplete="off">
+      <button type="submit" id="chat-send">发送</button>
+    </form>
+  </div>
+
+  <script>
+    (function() {
+      const toggle = document.getElementById('chat-toggle');
+      const panel = document.getElementById('chat-panel');
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('chat-input');
+      const send = document.getElementById('chat-send');
+      const msgs = document.getElementById('chat-msgs');
+      const history = [];
+
+      toggle.addEventListener('click', () => {
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) input.focus();
+      });
+
+      function append(role, text) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + role;
+        div.textContent = text;
+        msgs.appendChild(div);
+        msgs.scrollTop = msgs.scrollHeight;
+        return div;
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const q = input.value.trim();
+        if (!q) return;
+        input.value = '';
+        append('user', q);
+        history.push({ role: 'user', content: q });
+        send.disabled = true;
+        const placeholder = append('bot', '思考中…');
+        try {
+          const resp = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: history }),
+          });
+          const data = await resp.json();
+          if (data.error) {
+            placeholder.textContent = '⚠️ ' + data.error;
+          } else {
+            placeholder.textContent = data.reply;
+            history.push({ role: 'assistant', content: data.reply });
+          }
+        } catch (err) {
+          placeholder.textContent = '⚠️ 网络错误：' + err.message;
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
