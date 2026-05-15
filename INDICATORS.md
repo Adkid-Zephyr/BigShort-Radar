@@ -79,6 +79,19 @@
 - **翻译卡**：待用户补
 - **最近一次校准**：待开发后填
 
+### vix_term_structure
+- **代码**：vix_term_structure
+- **数据源**：YF:^VIX / YF:^VIX3M（取比值）
+- **更新频率**：日
+- **计算口径**：value = VIX_close / VIX3M_close（按交易日对齐）
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：< 0.95（contango，平静）
+  - YELLOW：0.95 – 1.0（紧张）
+  - RED：> 1.0（backwardation，倒挂，恐慌定价）
+- **阈值依据**：contango 是市场常态（~0.85–0.92），比值跨 1.0 即近月恐慌 > 远月，历史上 2008 雷曼周、2020 春、2022 多次都曾跨过（DECISIONS.md 2026-05-15 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：待开发后填
+
 ---
 
 ## P1 指标占位（开发到对应 PLAN 项时由模型创建条目，翻译卡留"待用户补"）
@@ -89,7 +102,7 @@
 - vix
 - ig_oas
 - vix
-- vix_term_structure
+- vix_term_structure  ✅ 已开发（见上）
 - sofr_iorb
 - fra_ois
 - shiller_pe

@@ -15,6 +15,7 @@ from flask import Flask, render_template
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import vix as vix_ind
+from src.compute.indicators import vix_term_structure as vts_ind
 from src.compute.indicators import yield_curve as yc_ind
 from src.compute.indicators import yield_curve_10y3m as yc3m_ind
 from src.compute.thresholds import Level
@@ -56,6 +57,11 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "name": igoas_ind.NAME,
         "label": "IG OAS 投资级利差",
         "classify": igoas_ind.classify_value,
+    },
+    {
+        "name": vts_ind.NAME,
+        "label": "VIX 期限结构（VIX/VIX3M）",
+        "classify": vts_ind.classify_value,
     },
 ]
 
