@@ -61,6 +61,10 @@ class Settings:
     db_path: Path
     logs_dir: Path
     project_root: Path
+    # LLM（可选；缺则相关功能降级，不影响主指标流程）
+    llm_api_key: Optional[str] = None
+    llm_base_url: Optional[str] = None
+    llm_model: Optional[str] = None
 
 
 def _to_int(value: Optional[str], default: int) -> int:
@@ -97,4 +101,7 @@ def load_settings(env_path: Optional[Path] = None) -> Settings:
         db_path=DB_PATH,
         logs_dir=LOGS_DIR,
         project_root=PROJECT_ROOT,
+        llm_api_key=os.environ.get("DASHSCOPE_API_KEY") or os.environ.get("LLM_API_KEY") or None,
+        llm_base_url=os.environ.get("DASHSCOPE_BASE_URL") or os.environ.get("LLM_BASE_URL") or None,
+        llm_model=os.environ.get("DASHSCOPE_MODEL") or os.environ.get("LLM_MODEL") or None,
     )

@@ -68,11 +68,50 @@
       max-width: 880px;
     }
     .legend span { display: flex; align-items: center; gap: 6px; }
+    .briefing {
+      max-width: 880px;
+      background: #11151a;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 0 0 28px;
+    }
+    .briefing h2 {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin: 0 0 8px;
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+    }
+    .briefing .b-date { color: #6b7280; font-size: 11px; font-weight: 400; }
+    .briefing .b-model { color: #6b7280; font-size: 11px; font-weight: 400; margin-left: auto; }
+    .briefing p {
+      margin: 0;
+      line-height: 1.7;
+      font-size: 14px;
+      color: #d1d5db;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
   <h1>Finance Radar</h1>
   <p class="sub">市场风险温度计 · 数据从 SQLite 读取，颜色按各指标默认阈值实时分类 · 分组聚合"曲线/信用/流动性/波动率"维度</p>
+
+  {% if briefing %}
+    <div class="briefing">
+      <h2>
+        今日风险简报
+        <span class="b-date">{{ briefing.date }}</span>
+        {% if briefing.model %}<span class="b-model">{{ briefing.model }}</span>{% endif %}
+      </h2>
+      <p>{{ briefing.content }}</p>
+    </div>
+  {% endif %}
 
   {% if groups %}
     {% for g in groups %}

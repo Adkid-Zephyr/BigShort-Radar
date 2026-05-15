@@ -54,11 +54,23 @@
 
 ## P3 — 解读层 & 综合温度计
 
-- [ ] 每个指标 Dashboard 上加 90 天 sparkline（plotly）
+- [x] (2026-05-15) LLM 接入：阿里百炼 Coding Plan + 每日风险简报 + dashboard 顶部渲染（DECISIONS.md iter 27 ADR）
 - [ ] 综合温度计：六维度加权 → 单一风险分（0-100）
+- [ ] /chat 对话接口：用户能就当前指标向 LLM 追问（路线 A）
+- [ ] 每个指标 Dashboard 上加 90 天 sparkline（plotly）
 - [ ] INDICATORS.md 每个指标补足"翻译卡"（含义/误判/历史案例）— 等用户输入
 - [ ] 仓位建议输出（基于综合温度计 → 风险敞口% / 对冲预算% / 现金%）
 - [ ] 历史回测：2007-2008 / 2019-2020 套规则跑出来对比
+
+## P3.5 — 日本与跨市场维度（崩盘剧本必备）
+
+- [ ] 日本 10Y 国债收益率（FRED:IRLTLT01JPM636N 月度 / yfinance ^TNX-JP 不可用）
+- [ ] 日本 30Y 国债收益率（YCC 退出后真正爆点）
+- [ ] USDJPY（yfinance:JPY=X）— carry trade 解除信号
+- [ ] DXY 美元指数（yfinance: DX-Y.NYB）— 美元强弱反向交叉验证
+- [ ] BoJ 资产规模（FRED:BOJASSETSWE 月度）— QE 量级
+- [ ] 美元互换基差（USD basis swap）— 离岸美元短缺
+- [ ] 国债基差交易杠杆（CFTC TFF 周报）
 
 ## P4 — 自动化与运维
 

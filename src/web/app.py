@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List
 
 from flask import Flask, render_template
 
+from src.compute import briefing as bf
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
@@ -186,8 +187,9 @@ def create_app(db_path=None) -> Flask:
         target = app.config["DB_PATH"]
         with dbmod.open_db(target) as conn:
             rows = _build_rows(conn)
+            briefing = bf.get_latest_briefing(conn)
         groups = _group_rows(rows)
-        return render_template("index.html", rows=rows, groups=groups)
+        return render_template("index.html", rows=rows, groups=groups, briefing=briefing)
 
     @app.route("/healthz")
     def healthz():

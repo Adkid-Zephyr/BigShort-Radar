@@ -6,8 +6,10 @@
 用法：
     .venv/bin/python -m scripts.daily_fetch              # 默认从 2020-01-01 拉到今天
     .venv/bin/python -m scripts.daily_fetch --start 2024-01-01
+    .venv/bin/python -m scripts.daily_fetch --no-briefing  # 跳过 LLM 简报
 
 日志写 logs/app.log + stdout。失败的 fetcher 不影响其他。
+跑完后自动调用 LLM 生成"今日风险简报"（缺 LLM 配置时静默跳过）。
 """
 from __future__ import annotations
 
@@ -15,6 +17,7 @@ import argparse
 import sys
 from typing import Callable, List, NamedTuple
 
+from src.compute import briefing as bf
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
@@ -49,10 +52,31 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="跑一遍所有 fetcher 并入库")
     p.add_argument("--start", default="2020-01-01", help="拉取起始日期 YYYY-MM-DD")
     p.add_argument("--end", default=None, help="拉取结束日期 YYYY-MM-DD（默认到今天）")
+    p.add_argument("--no-briefing", action="store_true", help="跳过 LLM 简报生成")
     return p.parse_args(argv)
 
 
-def run(start: str, end=None) -> int:
+# 简报生成需要 web/app.py 同款 registry，提取到这里避免循环依赖
+def _briefing_registry():
+    return [
+        {"name": vix_ind.NAME, "label": "VIX 恐慌指数",
+         "classify": vix_ind.classify_value, "group": "波动率"},
+        {"name": vts_ind.NAME, "label": "VIX 期限结构（VIX/VIX3M）",
+         "classify": vts_ind.classify_value, "group": "波动率"},
+        {"name": yc_ind.NAME, "label": "10Y-2Y 收益率曲线",
+         "classify": yc_ind.classify_value, "group": "曲线"},
+        {"name": yc3m_ind.NAME, "label": "10Y-3M 收益率曲线",
+         "classify": yc3m_ind.classify_value, "group": "曲线"},
+        {"name": hyoas_ind.NAME, "label": "HY OAS 高收益债利差",
+         "classify": hyoas_ind.classify_value, "group": "信用"},
+        {"name": igoas_ind.NAME, "label": "IG OAS 投资级利差",
+         "classify": igoas_ind.classify_value, "group": "信用"},
+        {"name": sofr_ind.NAME, "label": "SOFR-IORB 流动性",
+         "classify": sofr_ind.classify_value, "group": "流动性"},
+    ]
+
+
+def run(start: str, end=None, do_briefing: bool = True) -> int:
     """跑所有 fetcher。返回失败数（0 表示全成功）。"""
     failed = 0
     with dbmod.open_db() as conn:
@@ -63,13 +87,23 @@ def run(start: str, end=None) -> int:
             except Exception as e:  # 单个 fetcher 失败不影响其他
                 log.exception("[%s] 失败：%s", f.name, e)
                 failed += 1
-    log.info("daily_fetch 结束：%d 个 fetcher，%d 失败", len(FETCHERS), failed)
+        log.info("daily_fetch 抓取结束：%d 个 fetcher，%d 失败", len(FETCHERS), failed)
+
+        if do_briefing:
+            try:
+                text = bf.run_and_store(conn, _briefing_registry())
+                if text:
+                    log.info("简报生成成功：%d 字", len(text))
+                else:
+                    log.info("简报跳过或失败（LLM 未配置或调用失败）")
+            except Exception as e:
+                log.exception("简报生成异常（不影响主流程）：%s", e)
     return failed
 
 
 def main(argv=None) -> int:
     args = parse_args(argv if argv is not None else sys.argv[1:])
-    return run(start=args.start, end=args.end)
+    return run(start=args.start, end=args.end, do_briefing=not args.no_briefing)
 
 
 if __name__ == "__main__":  # pragma: no cover
