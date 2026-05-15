@@ -16,6 +16,7 @@ import sys
 from typing import Callable, List, NamedTuple
 
 from src.compute.indicators import vix as vix_ind
+from src.compute.indicators import yield_curve as yc_ind
 from src.store import db as dbmod
 from src.utils.logger import get_logger
 
@@ -30,6 +31,7 @@ class Fetcher(NamedTuple):
 # 已实现的 fetcher 注册（FRED 系列等用户给 key 后再加）
 FETCHERS: List[Fetcher] = [
     Fetcher(name="vix", run=vix_ind.fetch_and_store),
+    Fetcher(name="yield_curve_10y2y", run=yc_ind.fetch_and_store),
 ]
 
 

@@ -13,6 +13,7 @@ from typing import Any, Callable, Dict, List
 from flask import Flask, render_template
 
 from src.compute.indicators import vix as vix_ind
+from src.compute.indicators import yield_curve as yc_ind
 from src.compute.thresholds import Level
 from src.store import db as dbmod
 from src.utils.config import load_settings
@@ -32,6 +33,11 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "name": vix_ind.NAME,
         "label": "VIX 恐慌指数",
         "classify": vix_ind.classify_value,
+    },
+    {
+        "name": yc_ind.NAME,
+        "label": "10Y-2Y 收益率曲线",
+        "classify": yc_ind.classify_value,
     },
 ]
 

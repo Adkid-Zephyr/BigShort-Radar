@@ -24,8 +24,8 @@
 - [x] (2026-05-15) 决策：P0 首条上线指标改用什么数据源 → 选 A：VIX via yfinance（DECISIONS.md 已记）。FRED 路径并行推进，等用户给 key 后开做
 - [x] (2026-05-15) src/compute/indicators/vix.py：VIX（yfinance: ^VIX）实现 fetch+classify，写入 DB
 - [x] (2026-05-15) tests/test_vix.py：mock yf_client，覆盖 fetch+classify+写库
-- [ ] src/compute/indicators/yield_curve.py：10Y-2Y（FRED: T10Y2Y）实现 fetch+classify
-- [ ] tests/test_yield_curve.py
+- [x] (2026-05-15) src/compute/indicators/yield_curve.py：10Y-2Y（FRED: T10Y2Y）实现 fetch+classify
+- [x] (2026-05-15) tests/test_yield_curve.py
 - [x] (2026-05-15) src/web/app.py：Flask 起一页 / 路由 → 列出所有已实现指标，名/当前值/颜色/更新时间
 - [x] (2026-05-15) templates/index.html：极简表格，颜色 inline style
 - [x] (2026-05-15) scripts/daily_fetch.py：跑一遍所有已注册 fetcher，写入 DB
