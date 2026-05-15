@@ -10,14 +10,9 @@
 
 写库 schema：
   name="yield_curve_10y2y", date=YYYY-MM-DD, value=百分点, source="FRED:T10Y2Y"
-
-注：本文件结构刻意与 src/compute/indicators/vix.py 对齐（fetch+遍历+upsert）。
-DECISIONS.md "重复三次再抽象"——本指标是结构第二次出现，等到第三个 FRED 指标
-（10Y-3M 或 HY OAS）再把"遍历 series 写库"这段抽到 store 层 helper。
 """
 from __future__ import annotations
 
-import math
 import sqlite3
 from typing import Optional
 
@@ -55,29 +50,9 @@ def fetch_and_store(
         start: 拉取起始日期（ISO YYYY-MM-DD）
         end: 拉取结束日期；缺省到当前
     返回：
-        实际写入条数（去重前的行数；upsert 不区分新增/更新）
+        实际写入条数
     异常：
         不抛；fetch 失败返回 0
     """
     series = fred_client.fetch_series(SERIES_ID, start=start, end=end)
-    if series is None or len(series) == 0:
-        log.warning("yield_curve_10y2y fetch 返回空，未入库")
-        return 0
-
-    count = 0
-    for ts, value in series.items():
-        # ts 是 pandas Timestamp，转 ISO 日期串
-        date_str = ts.strftime("%Y-%m-%d") if hasattr(ts, "strftime") else str(ts)[:10]
-        try:
-            v = float(value)
-        except (TypeError, ValueError):
-            log.warning("yield_curve_10y2y 值无法转 float，跳过 %s=%r", date_str, value)
-            continue
-        if math.isnan(v) or math.isinf(v):
-            log.warning("yield_curve_10y2y 值是 NaN/Inf，跳过 %s=%r", date_str, value)
-            continue
-        dbmod.upsert_indicator(conn, name=NAME, date=date_str, value=v, source=SOURCE)
-        count += 1
-
-    log.info("yield_curve_10y2y 入库 %d 条（%s ~ %s）", count, start, end or "now")
-    return count
+    return dbmod.upsert_series_from_pandas(conn, name=NAME, source=SOURCE, series=series)

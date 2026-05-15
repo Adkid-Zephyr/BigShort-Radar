@@ -173,3 +173,61 @@ def get_series(
             (name,),
         )
     return [dict(r) for r in cur.fetchall()]
+
+
+# ── 批量写入 helper ──────────────────────────────────────────
+
+def upsert_series_from_pandas(
+    conn: sqlite3.Connection,
+    name: str,
+    source: str,
+    series: Any,
+) -> int:
+    """从一个 pandas.Series 批量 upsert 进 indicators 表。
+
+    抽象自 vix.py / yield_curve.py / yield_curve_10y3m.py 三处共用的循环
+    （DECISIONS.md "重复三次再抽象"原则触发，2026-05-15 iter 21）。
+
+    行为约定：
+      - index 必须是日期型（pandas.Timestamp 或可 strftime("%Y-%m-%d")），其他降级到 str(ts)[:10]
+      - 值无法转 float / 是 NaN / 是 Inf → 跳过该行并写 warning
+      - 全程 try/except 单行错误，整体不抛
+      - 调用方法：upsert_indicator 单行复用，事务由其内部 with conn 管理
+
+    入参：
+        conn: 已开 schema 的连接
+        name: 指标 name（如 "vix"）
+        source: 数据源（如 "YF:^VIX"）
+        series: pandas.Series 或类似 .items() 的可迭代（(timestamp, value)）；
+                None 或 len==0 直接返回 0
+    返回：
+        实际入库行数（跳过的不计）
+    异常：
+        不抛；底层 sqlite3.Error 由 upsert_indicator 抛出（极少见）
+    """
+    if series is None:
+        return 0
+    try:
+        if len(series) == 0:
+            return 0
+    except TypeError:
+        # 没有 __len__ 也尝试继续（迭代器场景）
+        pass
+
+    count = 0
+    for ts, value in series.items():
+        date_str = ts.strftime("%Y-%m-%d") if hasattr(ts, "strftime") else str(ts)[:10]
+        try:
+            v = float(value)
+        except (TypeError, ValueError):
+            log.warning("[%s] 值无法转 float，跳过 %s=%r", name, date_str, value)
+            continue
+        # 用 != 自身判断 NaN，避免依赖 math（保持 db.py 零外部库）
+        if v != v or v in (float("inf"), float("-inf")):
+            log.warning("[%s] 值是 NaN/Inf，跳过 %s=%r", name, date_str, value)
+            continue
+        upsert_indicator(conn, name=name, date=date_str, value=v, source=source)
+        count += 1
+
+    log.info("[%s] 批量入库 %d 条（来自 series 长度 %d）", name, count, len(series) if hasattr(series, "__len__") else -1)
+    return count

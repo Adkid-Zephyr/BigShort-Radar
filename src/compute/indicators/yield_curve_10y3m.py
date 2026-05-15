@@ -10,14 +10,9 @@
 
 写库 schema：
   name="yield_curve_10y3m", date=YYYY-MM-DD, value=百分点, source="FRED:T10Y3M"
-
-注：本文件结构与 vix.py / yield_curve.py 一致——这是该形状的第三次出现。
-按 DECISIONS.md "重复三次再抽象"，下一轮（iter 21）应将"遍历 series 写库"抽到
-store 层 helper，并回填三处。
 """
 from __future__ import annotations
 
-import math
 import sqlite3
 from typing import Optional
 
@@ -60,23 +55,4 @@ def fetch_and_store(
         不抛；fetch 失败返回 0
     """
     series = fred_client.fetch_series(SERIES_ID, start=start, end=end)
-    if series is None or len(series) == 0:
-        log.warning("yield_curve_10y3m fetch 返回空，未入库")
-        return 0
-
-    count = 0
-    for ts, value in series.items():
-        date_str = ts.strftime("%Y-%m-%d") if hasattr(ts, "strftime") else str(ts)[:10]
-        try:
-            v = float(value)
-        except (TypeError, ValueError):
-            log.warning("yield_curve_10y3m 值无法转 float，跳过 %s=%r", date_str, value)
-            continue
-        if math.isnan(v) or math.isinf(v):
-            log.warning("yield_curve_10y3m 值是 NaN/Inf，跳过 %s=%r", date_str, value)
-            continue
-        dbmod.upsert_indicator(conn, name=NAME, date=date_str, value=v, source=SOURCE)
-        count += 1
-
-    log.info("yield_curve_10y3m 入库 %d 条（%s ~ %s）", count, start, end or "now")
-    return count
+    return dbmod.upsert_series_from_pandas(conn, name=NAME, source=SOURCE, series=series)

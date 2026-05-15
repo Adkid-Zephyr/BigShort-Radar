@@ -13,7 +13,6 @@
 """
 from __future__ import annotations
 
-import math
 import sqlite3
 from typing import Optional
 
@@ -51,29 +50,9 @@ def fetch_and_store(
         start: 拉取起始日期（ISO YYYY-MM-DD）
         end: 拉取结束日期；缺省到当前
     返回：
-        实际写入条数（去重前的行数；upsert 不区分新增/更新）
+        实际写入条数
     异常：
         不抛；fetch 失败返回 0
     """
     series = yf_client.fetch_close(TICKER, start=start, end=end)
-    if series is None or len(series) == 0:
-        log.warning("VIX fetch 返回空，未入库")
-        return 0
-
-    count = 0
-    for ts, value in series.items():
-        # ts 是 pandas Timestamp，转 ISO 日期串
-        date_str = ts.strftime("%Y-%m-%d") if hasattr(ts, "strftime") else str(ts)[:10]
-        try:
-            v = float(value)
-        except (TypeError, ValueError):
-            log.warning("VIX 值无法转 float，跳过 %s=%r", date_str, value)
-            continue
-        if math.isnan(v) or math.isinf(v):
-            log.warning("VIX 值是 NaN/Inf，跳过 %s=%r", date_str, value)
-            continue
-        dbmod.upsert_indicator(conn, name=NAME, date=date_str, value=v, source=SOURCE)
-        count += 1
-
-    log.info("VIX 入库 %d 条（%s ~ %s）", count, start, end or "now")
-    return count
+    return dbmod.upsert_series_from_pandas(conn, name=NAME, source=SOURCE, series=series)
