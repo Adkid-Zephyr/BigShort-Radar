@@ -1,27 +1,28 @@
 # 上一轮总结
 
-迭代 29（2026-05-15）：综合风险温度计上线，dashboard 顶部出现 27/100 YELLOW 大数字。
+迭代 30-32（2026-05-15 自治）：MVP 收官 — chatbot + launchd + README 全部到位。
 
 本轮做了：
-- src/compute/risk_score.py：compute_score / risk_scores 表 / get_latest / run_and_store
-- 权重 ADR：曲线 25 / 信用 25 / 跨市场 20 / 流动性 15 / 波动率 15（合 100%）
-- Level → 分数线性（GREEN=0 / YELLOW=50 / RED=100），同 group 内取均值，再加权
-- 总分阈值：<25 GREEN / 25-65 YELLOW / ≥65 RED
-- tests/test_risk_score.py：9 用例（compute / breakdown / 缺数据 / 阈值 / run_and_store / overwrites）
-- daily_fetch 跑完先算分再调 LLM；briefing 喂 prompt 时附带综合分上下文
-- web/app.py 与 templates/index.html 加 .gauge 大数字卡片（含维度分解一行）
+- iter 30：/api/chat POST + 浮窗 UI（chat-toggle 按钮 + chat-panel + 流式 history）。系统 prompt 注入当前指标快照。LLM 真打成功（"日本10年期国债收益率最危险，因其处于红色警戒2.345%"）。pytest 167，commit 7f98bc9
+- iter 31：launchd plist + install_launchd.sh（install/uninstall/status/runonce 4 子命令）。北京 05:30 触发，已加载并验证 launchctl list 出现 com.financeradar.daily
+- iter 32：README 全面重写 — 启动指南、launchd 安装、双 API key 申请教程、10 指标维度阈值一览表、综合温度计算法、接力开发约定
 
-测试 + 真打：
-- pytest 共 163 通过 / 0 失败 / 0 skip（+9）
-- 真打 daily_fetch：score=27.08 YELLOW，跨市场 67/100 最高（USDJPY YELLOW + JP10Y RED 拉高）
-- LLM 简报已识别"日本 10 年期国债收益率维持在红色警戒水平 2.345%"
+测试：167 通过 / 0 失败。
 
-git：iter 28 1f5bdce → iter 29 待 commit。
+git：iter 29 5c27543 → iter 30 7f98bc9 → iter 31+32 待 commit。
 
-下一项 PLAN：
-- **iter 30：/chat 对话接口** — 用户能就当前指标追问 LLM（用户 5/15 14:18 提的 chatbot 需求）
-- iter 31：launchd 自动化（每天美东 16:30 自动跑）
-- iter 32：前端打磨（dashboard 视觉升级，准备成"产品"）
-- iter 33：GitHub 准备（README、scrub 检查、推上去）
+**MVP 标准达成**：
+- ✅ 10 指标 / 5 维度 / 综合温度计 0-100
+- ✅ LLM 风险简报 + chatbot 对话
+- ✅ launchd 每日自动跑
+- ✅ Dashboard localhost:5050 视觉完整
+- ✅ README 完整可独立启动
+- ✅ git 历史无密钥泄露（.env 严格 .gitignore）
 
-按用户授权"按计划做下去"，下一句"继续"将进 iter 30。
+下一步候选：
+- **iter 33：GitHub 推送**（用户 14:18 提的需求；准备好的待办：建仓库、推 main、写仓库描述、加 LICENSE）
+- iter 34：失败重试 + 日志轮转（P4 #2）
+- iter 35：sparkline（P3 #4，每条指标 90 天小图）
+- iter 36：历史回测（P3 #5，2008/2020 套规则验证）
+
+按用户授权"按计划做下去"，下一句"继续"将进 iter 33 GitHub 准备。

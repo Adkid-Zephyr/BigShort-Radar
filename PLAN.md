@@ -74,10 +74,15 @@
 
 ## P4 — 自动化与运维
 
-- [ ] launchd plist：每天美东 16:30 触发 daily_fetch
+- [x] (2026-05-15) launchd plist：每天美东 16:30 ≈ 北京 05:30 触发 daily_fetch — iter 31，scripts/install_launchd.sh 一键装/卸/查
 - [ ] 失败重试 + 日志轮转
 - [ ] 数据缺失告警（连续 N 天没拿到 → 邮件/飞书）
 - [ ] 备份脚本：每日 sqlite 拷贝到 ~/Backups/
+
+## P4.5 — 产品化（用户 2026-05-15 提出）
+
+- [x] (2026-05-15) README 完整化：启动指南、launchd 安装、API key 申请、维度阈值一览表 — iter 32
+- [ ] GitHub 推送 — iter 33 待办
 
 ## P5 — 上云（条件触发：系统稳定运行 1 个月以上）
 

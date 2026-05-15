@@ -1,27 +1,26 @@
 # Finance Radar
 
-本地金融风险监控系统。每日自动采集宏观/市场指标，计算风险分级，本地 Web Dashboard 显示。
+本地金融风险监控系统：每日自动采集宏观与市场指标，按维度加权算综合温度计，
+LLM 生成中文简报与对话式追问，跨设备 / 跨 AI 接力开发。
 
-定位：**风险温度计 + 仓位调节器 + 认知输出原料库**。
-不是做空信号机。指标会告诉你"风险在累积"，不会告诉你"明天空"。
+> 定位：**风险温度计 + 仓位调节器 + 认知输出原料库**。
+> 不是做空信号机。指标告诉你"风险在累积"，不告诉你"明天空"。
 
-## 核心文件
+## 当前能力
 
-- `PROMPT.md` — vibe coding 主 prompt，新对话直接粘进去
-- `PLAN.md` — 任务列表，开发循环吃这个，每完成一项打勾
-- `INDICATORS.md` — 指标说明书 + 翻译卡（用户手写为主，模型只能按既定规则补充）
-- `ARCHITECTURE.md` — 架构与目录约定
-- `DECISIONS.md` — 重要技术决策记录（ADR 风格）
-- `BLOCKED.md` — 遇到必须人工介入时由模型创建，存在则中断循环
-- `.ralph/last-summary.md` — 上一轮做了什么（跨轮记忆）
-- `.ralph/iteration.txt` — 当前迭代计数
-- `.env.example` — 环境变量样板（FRED key 等）
+- **10 条核心指标**，分 5 维度：
+  - 波动率：VIX、VIX 期限结构（VIX/VIX3M）
+  - 曲线：10Y-2Y、10Y-3M
+  - 信用：HY OAS、IG OAS
+  - 流动性：SOFR-IORB
+  - 跨市场：USDJPY、DXY、日本 10Y
+- **综合风险温度计** 0-100 分，五维加权（曲线 25 / 信用 25 / 跨市场 20 / 流动性 15 / 波动率 15）
+- **LLM 风险简报**：每日自动跑完 fetcher 后，调阿里百炼 qwen3-coder-plus 出 250 字中文简报
+- **chatbot 对话**：dashboard 浮窗，基于当前真实数据追问 LLM
+- **launchd 自动化**：北京时间 05:30 每日自动跑（≈ 美东收盘后半小时）
+- **测试覆盖**：167 用例 / 0 失败 / 0 skip
 
-## 开发模式
-
-vibe coding：开新对话粘 PROMPT.md，让它读 PLAN.md 找下一个 [ ]，做完打勾、写 last-summary、commit，回复"继续"就进入下一轮。
-
-## 启动
+## 一分钟启动
 
 ```bash
 cd /Users/lau/finance-radar
@@ -29,20 +28,20 @@ cd /Users/lau/finance-radar
 # 1. 建虚拟环境
 python3 -m venv .venv
 source .venv/bin/activate
-
-# 2. 装依赖
 pip install -r requirements.txt
 
-# 3. 准备配置（FRED_API_KEY 暂时可以留空，VIX 不需要）
+# 2. 配置 .env
 cp .env.example .env
-# 编辑 .env，填好 FRED_API_KEY=（可选）和 TZ=Asia/Shanghai
+# 编辑 .env，填入：
+#   FRED_API_KEY=你的key（必需，注册见下方）
+#   DASHSCOPE_API_KEY=你的百炼key（可选，缺失时 LLM 功能降级）
 
-# 4. 拉一遍数据入库（首次会从 2020-01-01 拉到今天，几秒钟）
+# 3. 拉数据（首次几秒钟）
 python -m scripts.daily_fetch
 
-# 5. 起 Web Dashboard
+# 4. 起 dashboard
 python -m src.web.app
-# 浏览器打开 http://localhost:5050 → 看到 VIX 当前值与颜色
+# 浏览器打开 http://localhost:5050
 ```
 
 跑测试：
@@ -51,22 +50,102 @@ python -m src.web.app
 .venv/bin/pytest -q
 ```
 
-## 已实现指标
+## 启用每日自动运行（macOS launchd）
 
-| 指标 | 来源 | 阈值（默认） |
-| --- | --- | --- |
-| VIX 恐慌指数 | yfinance ^VIX | GREEN ≤ 20 / YELLOW 20–30 / RED > 30 |
+```bash
+bash scripts/install_launchd.sh install     # 装 + 启用
+bash scripts/install_launchd.sh status      # 看运行状态
+bash scripts/install_launchd.sh runonce     # 立即手动触发一次
+bash scripts/install_launchd.sh uninstall   # 卸载
+```
 
-后续指标见 `PLAN.md` P1。FRED 系列（10Y-2Y、HY OAS、IG OAS 等）需要 API key，注册指引见下方。
+触发时间：每天 05:30（Asia/Shanghai），≈ 美东收盘后半小时。
+日志写到 `logs/launchd.out` 和 `logs/launchd.err`。
 
-## FRED API Key 注册指引
+## API Key 申请
 
-1. 打开 https://fred.stlouisfed.org/
-2. 右上 "My Account" → "Register" → 用邮箱注册并验证
-3. 登录后进 https://fred.stlouisfed.org/docs/api/api_key.html → "Request API Key" → 填一句"个人金融研究"用途即可，秒批
-4. 拿到的 32 位字符串写进 `.env`：`FRED_API_KEY=你的key`
-5. 跑 `python -m scripts.daily_fetch`，FRED 系列就会自动生效
+### FRED（必需，免费）
 
-## 每日定时
+1. 打开 <https://fred.stlouisfed.org/>
+2. 右上角 **My Account** → **Register** → 邮箱验证
+3. 进 <https://fred.stlouisfed.org/docs/api/api_key.html> → **Request API Key**
+   填"个人金融研究"用途，秒批
+4. 32 位字符串写到 `.env`：`FRED_API_KEY=...`
 
-`scripts/daily_fetch.py` + macOS launchd（部署在 P4 阶段）。
+### 阿里百炼（可选，付费）
+
+LLM 简报与 chatbot 用。缺失时这两个功能自动降级（dashboard 仍可看，每日数据照常入库）。
+
+1. <https://bailian.console.aliyun.com/> 开通 Coding Plan
+2. 拿 API Key（`sk-sp-` 开头），写到 `.env`：
+   ```
+   DASHSCOPE_API_KEY=sk-sp-...
+   DASHSCOPE_BASE_URL=https://coding.dashscope.aliyuncs.com/v1
+   DASHSCOPE_MODEL=qwen3-coder-plus
+   ```
+
+## 项目文件导览
+
+| 文件 | 用途 |
+| --- | --- |
+| `PROMPT.md` | Vibe coding 工作宪法，新会话直接喂这个 |
+| `PLAN.md` | 任务列表，开发循环吃这个，做完打勾 |
+| `INDICATORS.md` | 指标说明书 + 阈值依据（翻译卡用户手写） |
+| `ARCHITECTURE.md` | 架构与目录约定 |
+| `DECISIONS.md` | ADR 风格的决策记录 |
+| `HANDOFF.md` | 接力手册：新 agent 看完这个能立刻续上 |
+| `.ralph/last-summary.md` | 上一轮做了什么（跨轮记忆） |
+| `.ralph/iteration.txt` | 当前迭代号 |
+| `.env.example` | 环境变量样板，复制为 `.env` 后填值 |
+
+## 接力开发约定
+
+任何新 agent / 新设备打开仓库后：
+
+1. 先读 `HANDOFF.md`（30 秒上下文）
+2. 跑 `.venv/bin/pytest -q` 确认基线绿
+3. 看 `.ralph/last-summary.md` 知道上一轮做到哪
+4. 找 `PLAN.md` 顶上的第一个 `[ ]`，按 `PROMPT.md` 工作循环跑一轮
+5. 收尾必做：测试通过 + 打勾 + commit + 更新 last-summary + iteration+1
+
+详见 `HANDOFF.md` §6 留痕规范。
+
+## 维度与阈值（一览）
+
+| 指标 | 来源 | 方向 | GREEN | YELLOW | RED |
+| --- | --- | --- | --- | --- | --- |
+| VIX | YF ^VIX | up | < 20 | 20–30 | > 30 |
+| VIX 期限结构 | YF ^VIX/^VIX3M | up | < 0.95 | 0.95–1.0 | > 1.0 |
+| 10Y-2Y | FRED T10Y2Y | down | > 0.5 | 0–0.5 | < 0 |
+| 10Y-3M | FRED T10Y3M | down | > 0.5 | 0–0.5 | < 0 |
+| HY OAS | FRED BAMLH0A0HYM2 | up | < 4 | 4–8 | > 8 |
+| IG OAS | FRED BAMLC0A0CM | up | < 1.5 | 1.5–3 | > 3 |
+| SOFR-IORB | FRED SOFR/IORB | up | < 5 bp | 5–15 bp | > 15 bp |
+| USDJPY | FRED DEXJPUS | up | < 145 | 145–160 | > 160 |
+| DXY 广义 | FRED DTWEXBGS | up | < 110 | 110–125 | > 125 |
+| 日本 10Y | FRED IRLTLT01JPM156N | up | < 1.0 | 1.0–2.0 | > 2.0 |
+
+阈值依据见 `INDICATORS.md` 与 `DECISIONS.md`。
+
+## 综合温度计算法
+
+```
+每条指标按 Level 转分：GREEN=0 / YELLOW=50 / RED=100
+同 group 内取算术平均 → 维度分
+维度分 × 维度权重 → 总分
+```
+
+权重：曲线 25 / 信用 25 / 跨市场 20 / 流动性 15 / 波动率 15（合 100）
+
+总分阈值：< 25 GREEN / 25–65 YELLOW / ≥ 65 RED
+
+## 不做的事（明确边界）
+
+- 不做实时分钟级行情
+- 不做交易执行（信号系统不是下单系统）
+- 不做账户聚合
+- 不引入 ORM、消息队列、容器（MVP 简化优先）
+
+## License
+
+私有项目，未发布。

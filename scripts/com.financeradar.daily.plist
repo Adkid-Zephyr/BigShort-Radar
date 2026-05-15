@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+Finance Radar 每日自动跑：
+  - 美东 16:30（收盘后半小时）= 北京 05:30 次日（夏令时 04:30）
+  - 简化处理：固定北京 05:30，覆盖夏冬令时
+  - WorkingDirectory = /Users/lau/finance-radar/
+  - 程序入口：.venv/bin/python -m scripts.daily_fetch
+  - 日志：logs/launchd.out / logs/launchd.err
+  - 漏跑追跑：RunAtLoad=false（开机不立刻跑），但 KeepAlive=false（不常驻）；macOS 不会自动追跑遗漏的，但下一次到点会跑
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.financeradar.daily</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/lau/finance-radar/.venv/bin/python</string>
+        <string>-m</string>
+        <string>scripts.daily_fetch</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/lau/finance-radar</string>
+
+    <!-- 北京 05:30 触发（≈ 美东 16:30 / 17:30 收盘半小时后，夏冬令时容差） -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>5</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/lau/finance-radar/logs/launchd.out</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/lau/finance-radar/logs/launchd.err</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/lau/finance-radar/.venv/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>TZ</key>
+        <string>Asia/Shanghai</string>
+    </dict>
+</dict>
+</plist>
