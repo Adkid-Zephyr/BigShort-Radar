@@ -28,8 +28,8 @@
 - [x] (2026-05-15) tests/test_vix.py：mock yf_client，覆盖 fetch+classify+写库
 - [ ] src/compute/indicators/yield_curve.py：10Y-2Y（FRED: T10Y2Y）实现 fetch+classify ⏸ 待 API key
 - [ ] tests/test_yield_curve.py ⏸ 待 API key
-- [ ] src/web/app.py：Flask 起一页 / 路由 → 列出所有已实现指标，名/当前值/颜色/更新时间
-- [ ] templates/index.html：极简表格，颜色 inline style
+- [x] (2026-05-15) src/web/app.py：Flask 起一页 / 路由 → 列出所有已实现指标，名/当前值/颜色/更新时间
+- [x] (2026-05-15) templates/index.html：极简表格，颜色 inline style
 - [ ] scripts/daily_fetch.py：跑一遍所有已注册 fetcher，写入 DB
 - [ ] README 跑通指南：venv → pip → .env → daily_fetch → flask run，本地 http://localhost:5050 打开能看到 1 个指标
 - [ ] 用户验收里程碑：localhost:5050 看到第一条绿色/黄色指标
