@@ -23,7 +23,9 @@
 - [x] (2026-05-15) tests/test_fetch.py：mock 外部，验证返回结构（先只覆盖 yf_client，FRED 部分 ⏸ 待 API key 后补）
 - [x] (2026-05-15) src/compute/thresholds.py：枚举三档（GREEN/YELLOW/RED）+ classify(value, low, high, direction) 通用函数
 - [x] (2026-05-15) tests/test_thresholds.py：覆盖正向/反向/边界
-- [ ] 决策：P0 首条上线指标改用什么数据源（候选 A：VIX via yfinance；候选 B：等 FRED key 后再做 10Y-2Y）— 用户拍板后写 DECISIONS.md
+- [x] (2026-05-15) 决策：P0 首条上线指标改用什么数据源 → 选 A：VIX via yfinance（DECISIONS.md 已记）。FRED 路径并行推进，等用户给 key 后开做
+- [ ] src/compute/indicators/vix.py：VIX（yfinance: ^VIX）实现 fetch+classify，写入 DB
+- [ ] tests/test_vix.py：mock yf_client，覆盖 fetch+classify+写库
 - [ ] src/compute/indicators/yield_curve.py：10Y-2Y（FRED: T10Y2Y）实现 fetch+classify ⏸ 待 API key
 - [ ] tests/test_yield_curve.py ⏸ 待 API key
 - [ ] src/web/app.py：Flask 起一页 / 路由 → 列出所有已实现指标，名/当前值/颜色/更新时间
@@ -37,7 +39,6 @@
 - [ ] 10Y-3M（FRED: T10Y3M）⏸ 待 API key
 - [ ] HY OAS（FRED: BAMLH0A0HYM2）⏸ 待 API key
 - [ ] IG OAS（FRED: BAMLC0A0CM）⏸ 待 API key
-- [ ] VIX（yfinance: ^VIX）
 - [ ] VIX 期限结构（VIX vs VIX3M / VIX6M）
 - [ ] SOFR-IORB（FRED: SOFR - IORB）⏸ 待 API key
 - [ ] FRA-OIS（手动算或找代理序列）⏸ 待 API key（候选数据源都依赖 FRED）
