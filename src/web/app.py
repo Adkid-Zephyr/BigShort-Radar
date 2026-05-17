@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, abort, jsonify, render_template, request
 
 from src.compute import briefing as bf
 from src.compute import risk_score as rs
@@ -30,6 +30,7 @@ from src.store import db as dbmod
 from src.store import history_db as hdbmod
 from src.utils.config import load_settings
 from src.utils.logger import get_logger
+from src.web.charts import build_indicator_chart_html
 from src.web.source_links import source_url as derive_source_url
 from src.web.sparkline import build_sparkline_svg
 
@@ -153,6 +154,34 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
     },
 ]
 
+# 注册表的快速索引（O(1) 按 name 查），iter 40 加（详情页路由用）
+_REGISTRY_BY_NAME: Dict[str, Dict[str, Any]] = {ind["name"]: ind for ind in _INDICATOR_REGISTRY}
+
+# 给 registry 每条补 "source" 字段（详情页显示用），从 indicator 模块拿
+for _ind in _INDICATOR_REGISTRY:
+    _name = _ind["name"]
+    if _name == vix_ind.NAME:
+        _ind.setdefault("source", vix_ind.SOURCE)
+    elif _name == vts_ind.NAME:
+        _ind.setdefault("source", vts_ind.SOURCE)
+    elif _name == yc_ind.NAME:
+        _ind.setdefault("source", yc_ind.SOURCE)
+    elif _name == yc3m_ind.NAME:
+        _ind.setdefault("source", yc3m_ind.SOURCE)
+    elif _name == hyoas_ind.NAME:
+        _ind.setdefault("source", hyoas_ind.SOURCE)
+    elif _name == igoas_ind.NAME:
+        _ind.setdefault("source", igoas_ind.SOURCE)
+    elif _name == sofr_ind.NAME:
+        _ind.setdefault("source", sofr_ind.SOURCE)
+    elif _name == usdjpy_ind.NAME:
+        _ind.setdefault("source", usdjpy_ind.SOURCE)
+    elif _name == dxy_ind.NAME:
+        _ind.setdefault("source", dxy_ind.SOURCE)
+    elif _name == jp10y_ind.NAME:
+        _ind.setdefault("source", jp10y_ind.SOURCE)
+
+
 # 分组展示顺序（左到右、上到下；用户视角通常先看波动率再看信用再看曲线再看流动性）
 _GROUP_ORDER = ["波动率", "信用", "曲线", "流动性", "跨市场", "估值"]
 
@@ -165,40 +194,69 @@ _LEVEL_COLORS = {
 }
 
 
+def _fetch_history_pairs(
+    main_conn,
+    name: str,
+    days: int = 90,
+    history_db_path=None,
+) -> "tuple[List[str], List[float]]":
+    """取最近 N 天历史 (dates, values) 两个等长 list。
+
+    优先 history cache DB（5 年回填），少于 10 个点走主 DB 兜底。
+
+    入参：
+        main_conn: 主 DB 连接
+        name: 指标 name
+        days: 取最近多少天
+        history_db_path: 可选 cache DB 路径
+    返回：
+        (dates_iso, values) 等长 list，按 date 升序；无数据返 ([], [])
+    """
+    today = datetime.now(tz=timezone.utc).date()
+    today_iso = today.strftime("%Y-%m-%d")
+    start_iso = (today - timedelta(days=days)).strftime("%Y-%m-%d")
+
+    dates: List[str] = []
+    values: List[float] = []
+
+    # 优先 history cache DB
+    try:
+        with hdbmod.open_history_db(history_db_path) as hconn:
+            hist_rows = hdbmod.get_series_range(hconn, name, start=start_iso, end=today_iso)
+            dates = [str(r["date"]) for r in hist_rows]
+            values = [float(r["value"]) for r in hist_rows]
+    except Exception as e:  # noqa: BLE001
+        log.warning("history pairs: history_db 取 %s 失败 (%s)，走主 DB 兜底", name, e)
+
+    # 兜底：主 DB
+    if len(values) < 10:
+        main_rows = dbmod.get_series(main_conn, name, days=days)
+        dates = [str(r["date"]) for r in main_rows]
+        values = [float(r["value"]) for r in main_rows]
+
+    return dates, values
+
+
 def _fetch_sparkline_values(
     main_conn,
     name: str,
     days: int = 90,
     history_db_path=None,
 ) -> List[float]:
-    """取最近 N 天历史值供 sparkline 用。优先 history cache DB，不够走主 DB 兜底。
-
-    入参：
-        main_conn: 主 DB 连接（已开 schema）
-        name: 指标 name
-        days: 取最近多少天，默认 90
-        history_db_path: 可选自定义 cache DB 路径（测试用）；缺省走 hdbmod.HISTORY_DB_PATH
-    返回：
-        list[float]，按 date 升序。无数据返 []
-    """
-    today = datetime.now(tz=timezone.utc).date()
-    today_iso = today.strftime("%Y-%m-%d")
-    start_iso = (today - timedelta(days=days)).strftime("%Y-%m-%d")
-    values: List[float] = []
-    # 优先 history cache DB
-    try:
-        with hdbmod.open_history_db(history_db_path) as hconn:
-            hist_rows = hdbmod.get_series_range(hconn, name, start=start_iso, end=today_iso)
-            values = [float(r["value"]) for r in hist_rows]
-    except Exception as e:  # noqa: BLE001 — 防御 cache DB 路径权限/磁盘异常
-        log.warning("sparkline: history_db 取 %s 失败 (%s)，走主 DB 兜底", name, e)
-
-    # 兜底：用主 DB get_series（每日累积来源）
-    if len(values) < 10:
-        main_rows = dbmod.get_series(main_conn, name, days=days)
-        values = [float(r["value"]) for r in main_rows]
-
+    """取最近 N 天 values（sparkline 不需 dates）。复用 _fetch_history_pairs。"""
+    _, values = _fetch_history_pairs(main_conn, name, days=days, history_db_path=history_db_path)
     return values
+
+
+def _fetch_sparkline_dates(
+    main_conn,
+    name: str,
+    days: int = 90,
+    history_db_path=None,
+) -> List[str]:
+    """取最近 N 天 dates（详情页配合 values 给 plotly x 轴）。"""
+    dates, _ = _fetch_history_pairs(main_conn, name, days=days, history_db_path=history_db_path)
+    return dates
 
 
 def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
@@ -319,6 +377,72 @@ def create_app(db_path=None, history_db_path=None) -> Flask:
             rows=rows, groups=groups,
             briefing=briefing, risk=risk,
             level_colors={k.value: v for k, v in _LEVEL_COLORS.items()},
+            active_page="index",
+        )
+
+    @app.route("/indicator/<name>")
+    def indicator_detail(name: str):
+        """指标详情页：5 年 plotly 大图 + 元信息 + 阈值带。"""
+        ind = _REGISTRY_BY_NAME.get(name)
+        if ind is None:
+            abort(404)
+
+        target = app.config["DB_PATH"]
+        hist_target = app.config.get("HISTORY_DB_PATH")
+
+        # 取尽可能多的历史数据：cache DB（5 年回填）+ 主 DB 兜底
+        # 详情页要全量，days=None 拿全部；这里 days=2000 (~5.5 年) 上限
+        days_window = 2000
+        with dbmod.open_db(target) as main_conn:
+            spark_values = _fetch_sparkline_values(
+                main_conn, name, days=days_window, history_db_path=hist_target
+            )
+            # 取对应日期：与 _fetch_sparkline_values 同源，但要保留日期信息
+            dates = _fetch_sparkline_dates(
+                main_conn, name, days=days_window, history_db_path=hist_target
+            )
+            latest = dbmod.get_latest(main_conn, name)
+
+        # 长度对齐（防御）
+        if len(dates) != len(spark_values):
+            dates = dates[: len(spark_values)]
+            spark_values = spark_values[: len(dates)]
+
+        # 当前等级与颜色
+        level = None
+        color = "#9ca3af"
+        if latest is not None:
+            lv = ind["classify"](latest["value"])
+            level = lv.value
+            color = _LEVEL_COLORS.get(lv, "#9ca3af")
+
+        # source URL
+        registry_url = ind.get("source_url")
+        derived_url = derive_source_url(latest["source"]) if latest else derive_source_url(ind.get("source"))
+        source_url = registry_url or derived_url
+
+        # plotly 大图
+        chart_html = build_indicator_chart_html(
+            name=ind["name"],
+            label=ind["label"],
+            dates=dates,
+            values=spark_values,
+            threshold_low=ind.get("threshold_low"),
+            threshold_high=ind.get("threshold_high"),
+            direction=ind.get("direction", "up"),
+        )
+
+        return render_template(
+            "indicator_detail.html",
+            ind=ind,
+            level=level,
+            color=color,
+            latest_value=latest["value"] if latest else None,
+            latest_date=latest["date"] if latest else None,
+            source_url=source_url,
+            chart_html=chart_html,
+            point_count=len(spark_values),
+            active_page="index",  # 详情页归入"指标"栏目
         )
 
     @app.route("/healthz")

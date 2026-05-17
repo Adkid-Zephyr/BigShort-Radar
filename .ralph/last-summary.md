@@ -1,58 +1,74 @@
 # 上一轮总结
 
-迭代 39（2026-05-17）：Sparkline 90 天微折线（首发异常监测视角）。
+迭代 40（2026-05-17）：Sparkline 可点击 + 指标详情页 + base.html 多页架构起点。
 
 ## 本轮做了
 
-### A. 新建 src/web/sparkline.py（165 行）
+### A. 多页架构基础
 
-- 纯函数 `build_sparkline_svg(values, threshold_low, threshold_high, direction, width=120, height=28, min_points=10)`
-- 输出 inline SVG：折线 path + 三档阈值带 rect + 末点蓝色 circle 高亮
-- 数据不足 → "积累中 (n/10)" 灰色占位
-- NaN/Inf 自动过滤
-- 零依赖（不引 plotly / matplotlib）
-- direction = "up" → 顶部 RED，"down" → 顶部 GREEN（按 y_of(threshold) 排序，鲁棒）
+- `templates/_base.html` 新建：共享 head/CSS/顶部 nav/chatbot 浮窗/`{% block content %}`
+- `templates/index.html` 重写继承 _base，从 394 行减到 ~110 行
+- `templates/indicator_detail.html` 新建：plotly 大图 + dl 元信息 + 面包屑
 
-### B. src/web/app.py 集成
+### B. Plotly 大图（详情页）
 
-- registry 加 `threshold_low/high/direction` 字段，引用 indicator 模块常量
-- `_fetch_sparkline_values(name, days=90)`：先 history cache DB，不够 10 个点走主 DB 兜底
-- `_build_rows` 注入 `sparkline_svg` 字段
-- `create_app(history_db_path=None)` 支持测试注入临时 cache 路径
+- 装 plotly 6.7.0（已在 requirements.txt 白名单）
+- `src/web/charts.py` 新建：`build_indicator_chart_html(name, label, dates, values, threshold_low, threshold_high, direction)`
+  - 主折线 + 末点蓝色高亮
+  - 阈值水平线 + 三档区域填色（up 顶 RED / down 顶 GREEN）
+  - 工具栏配置 zoom/pan/reset/导出 PNG，去 lasso/select
+  - `include_plotlyjs="cdn"` 详情页加载 plotly 3.5.0 CDN
 
-### C. 模板 templates/index.html
+### C. app.py 路由
 
-- 表头加"90 天"列
-- 行里 `{{ r.sparkline_svg | safe }}` 渲染 SVG
-- 加 `.spark-cell` CSS：vertical-align middle，width 132px
+- 加 `/indicator/<name>` → 渲染 indicator_detail.html
+- 加 `_REGISTRY_BY_NAME: Dict[str, ind]` O(1) 索引
+- 拆 `_fetch_history_pairs` 返 `(dates, values)` 同时支持 sparkline 和详情页
+- 404 路径：未注册 name 走 `abort(404)`
 
-### D. 测试
+### D. 顶部导航条
 
-- `tests/test_sparkline.py` 17 个用例（占位 / 阈值 / 方向 / 鲁棒性 / 末点位置）
-- `tests/test_web.py` 加 3 个 e2e 断言（90 天列 / spark-cell / 占位）+ 把 client/empty/group_header fixtures 全部传 history_db_path tmp 路径，避免污染本机真 cache
-- pytest **267 通过 / 0 失败 / 0 skip**（244 → 267，+23）
+5 项：指标（current）+ 事件 / 热力图 / 时间线 / 对冲面（disabled grey 占位，后续 iter 47-51 实现）
 
-### E. 实测验证
+### E. Sparkline 可点击
 
-curl http://127.0.0.1:5050/ 抓 HTML 后 grep：
-- HTML 从 20KB → 32KB（增量全是 SVG 数据）
-- 10 个 `<svg>` 标签
-- 8 条指标真实折线 path（已回填 5 年历史的 FRED 系列）
-- 2 条指标"积累中"占位：VIX（Yahoo 限速漏拉）+ SOFR-IORB（派生指标 cache 回填跳过）
-- 三档阈值带：up 方向 RED 在顶，down 方向 GREEN 在顶 ✅
+主 dashboard 每条 sparkline 包成 `<a href="/indicator/<name>" class="spark-link">` + `:hover` 提亮
 
-git：iter 38 8d75008 → iter 39 待 commit。
+### F. 测试
 
-## 下一轮（iter 40）
+- `tests/test_charts.py` 10 个用例（占位 / 阈值线 / 方向 / 自定义 height）
+- `tests/test_indicator_detail_page.py` 11 个用例（200/404/breadcrumb/dl/plotly/source_url/nav）
+- pytest **288 通过 / 0 失败 / 0 skip**（267 → 288，+21）
 
-**同比 / 环比对比表**（视角 H，最简单的行内增强）。
+### G. 文档同步 6 条
 
-行里加 4 个新列：今日 / 7 天前 / 30 天前 / 90 天前 + 4 个变化百分比。
-数据来源：history cache DB get_series_range 取那几个日期点，主 DB 兜底。
+- INDICATORS.md：不动
+- DECISIONS.md：iter 40 完整 ADR
+- README.md：tests 数 197 → 288
+- HANDOFF.md：不动
+- THESIS.md：不动
+- PLAN.md：iter 40 标 [x]，路线图后置（同环比表 → iter 41，原 50 → 51）
 
-实现要点：
-- `src/web/comparisons.py` 纯函数 `lookback_compare(history, today_value, lookback_days)` -> {value, pct_change}
-- 模板表格加列（5 列变 9 列，要重新平衡布局）
-- 测试：mock history 数据验各 lookback 计算
+### H. 实测验证
 
-下一句"继续"将进 iter 40。
+```
+curl http://127.0.0.1:5050/                   → HTTP 200，10 个 spark 链接
+curl http://127.0.0.1:5050/indicator/vix      → HTTP 200，含 plotly CDN script
+curl http://127.0.0.1:5050/indicator/hy_oas   → 36KB，含 786 个 plotly y 数据点（5 年历史）
+curl http://127.0.0.1:5050/indicator/none     → HTTP 404
+```
+
+git：iter 39 f5cf49f → iter 40 待 commit。
+
+## 下一轮（iter 41）
+
+**同比 / 环比对比表**（行内增强）：
+
+- 行里加 4 列：今日 / 上周 / 上月 / 上季度 + 4 列变化百分比
+- 数据：history_db.get_series_range 取那几个日期点的最近值
+- 颜色：恶化方向用红字（结合 direction 判断"恶化"是上升还是下降）
+- `src/web/comparisons.py` 新模块：纯函数 `lookback_summary(history, today, lookback_days)` 返 dict {value, pct_change, deteriorate}
+- 模板表格加列（6 列变 10 列，要重排版）
+- 测试：mock history 数据 + e2e dashboard 含同环比
+
+下一句"继续"将进 iter 41。

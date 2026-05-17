@@ -86,17 +86,18 @@
 
 - [x] (2026-05-17) iter 38：历史数据 cache DB 骨架（**akshare 已拍板方案 B：不引入**，仅用 FRED+YF）— 新建 `data/historical_cache.sqlite` + `src/store/history_db.py` + `src/fetch/history_fetcher.py` + `scripts/backfill_history.py`，47 个新测试覆盖 cache DB CRUD + fetcher 路由 + backfill 脚本派生识别
 - [x] (2026-05-17) iter 39：Sparkline 90 天微折线（首发异常监测视角）— `src/web/sparkline.py` 纯函数 SVG 渲染（折线 + 三档阈值带 + 末点高亮 + 数据不足"积累中"占位），`_INDICATOR_REGISTRY` 加 threshold/direction 元信息引用，`_build_rows` 注入 sparkline_svg，模板加"90 天"列。23 个新测试。8 条指标真实折线 + 2 条占位（VIX yahoo 限速 + SOFR-IORB 派生）
-- [ ] iter 40：同比 / 环比对比表 — 行内列：今日 / 上周 / 上月 / 上季度 + 变化百分比
-- [ ] iter 41：5 年历史回填脚本跑一次 + Z-score 列 — 当前值在过去 5 年分布的位置（百分位）
-- [ ] iter 42：加速度（5/20 天斜率）列 — 标"突然变陡"的指标
-- [ ] iter 43：政策反应维度 3 条 — WALCL（FRED:WALCL）/ ON RRP（FRED:RRPONTSYD）/ TGA（FRED:WTREGEN）
-- [ ] iter 44：波动率结构 2 条 — VVIX（YF:^VVIX）/ SKEW（YF:^SKEW 或 CBOE）
-- [ ] iter 45：FRA-OIS 代理（FRED 衍生：3M T-bill - SOFR）+ 中国维度 3 条骨架（**方案 B**：FRED 拿到的）
-- [ ] iter 46：中国维度 3 条上线 — 中国外汇储备（FRED:TRESEGCNM052N 月值）/ USDCNY 在岸（FRED:DEXCHUS）/ 中国 10Y（FRED:IRLTLT01CNM156N 月值），dashboard 加"中国"分组
-- [ ] iter 47：异常事件流（30 天倒序）— 新页面 `/events`，列出"翻档 / 突破阈值 / 同时多指标走阔"的事件
-- [ ] iter 48：组合信号告警规则 — 5 个崩盘剧本检测器（剧本 A 美元荒 / B 国债基差 / C 日本 carry / D AI 泡沫 / E 信用滞后崩 各一条规则）
-- [ ] iter 49：风险矩阵热力图 + 综合温度计 2 年时间线 — 新页面 `/heatmap` 与 `/timeline`
-- [ ] iter 50：政策对冲对比页（视角 I）+ 阈值校准面板（视角 J）— 风险面 vs 对冲面 / 历史读数 vs 当时市场表现
+- [x] (2026-05-17) iter 40：Sparkline 可点击 + 指标详情页 + base.html 多页架构 — `templates/_base.html`（继承基础 + 顶部 nav）/ `templates/indicator_detail.html`（plotly 大图 + 元信息 dl）/ `src/web/charts.py`（plotly CDN，三档填色 + 阈值线 + 末点高亮）/ `app.py` 加 `/indicator/<name>` 路由 + REGISTRY_BY_NAME + `_fetch_history_pairs`。21 个新测试。详情页加载 plotly 3.5.0 CDN，HY OAS 等 786 数据点 5 年大图可缩放/拖动/导出 PNG
+- [ ] iter 41：同比 / 环比对比表 — 行内列：今日 / 上周 / 上月 / 上季度 + 变化百分比
+- [ ] iter 42：5 年历史回填脚本跑一次 + Z-score 列 — 当前值在过去 5 年分布的位置（百分位）；VIX 改用 FRED:VIXCLS 替代 yahoo（避限速）
+- [ ] iter 43：加速度（5/20 天斜率）列 — 标"突然变陡"的指标
+- [ ] iter 44：政策反应维度 3 条 — WALCL（FRED:WALCL）/ ON RRP（FRED:RRPONTSYD）/ TGA（FRED:WTREGEN）
+- [ ] iter 45：波动率结构 2 条 — VVIX（YF:^VVIX）/ SKEW（YF:^SKEW 或 CBOE）
+- [ ] iter 46：FRA-OIS 代理（FRED 衍生：3M T-bill - SOFR）+ 中国维度骨架（FRED 系列）
+- [ ] iter 47：中国维度 3 条上线 — 中国外汇储备（FRED:TRESEGCNM052N 月值）/ USDCNY 在岸（FRED:DEXCHUS）/ 中国 10Y（FRED:IRLTLT01CNM156N 月值）
+- [ ] iter 48：异常事件流（30 天倒序）— 新页面 `/events`，列出"翻档 / 突破阈值 / 同时多指标走阔"的事件，用 base.html 与 nav
+- [ ] iter 49：组合信号告警规则 — 5 个崩盘剧本检测器（剧本 A 美元荒 / B 国债基差 / C 日本 carry / D AI 泡沫 / E 信用滞后崩 各一条规则）
+- [ ] iter 50：风险矩阵热力图 + 综合温度计 2 年时间线 — 新页面 `/heatmap` 与 `/timeline`
+- [ ] iter 51：政策对冲对比页（视角 I）+ 阈值校准面板（视角 J）— 风险面 vs 对冲面 / 历史读数 vs 当时市场表现
 
 **暂搁**（不在路线图，待评估）：
 - 美元互换基差（USD basis swap）— 无免费源
