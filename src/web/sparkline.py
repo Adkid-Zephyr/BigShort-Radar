@@ -18,12 +18,12 @@ import math
 from typing import List, Optional, Sequence
 
 # 颜色（与 web/app.py _LEVEL_COLORS 对齐，但带透明度，避免压住折线）
-_COLOR_GREEN_BG = "rgba(34,197,94,0.15)"
+_COLOR_GREEN_BG = "rgba(34,197,94,0.16)"
 _COLOR_YELLOW_BG = "rgba(234,179,8,0.18)"
 _COLOR_RED_BG = "rgba(239,68,68,0.18)"
-_COLOR_LINE = "#e5e7eb"  # 浅灰白，与深色主题搭
+_COLOR_LINE = "#f4f4f5"  # zinc-100，与 design tokens 同步
 _COLOR_DOT_LATEST = "#60a5fa"  # 蓝色高亮当前点
-_COLOR_PLACEHOLDER = "#4b5563"
+_COLOR_PLACEHOLDER = "#52525b"  # zinc-600 占位
 
 # 默认渲染参数
 DEFAULT_WIDTH = 120

@@ -104,8 +104,9 @@
 - [x] (2026-05-17) iter 52：历史回测引擎股架 + 数据准备 + 2020 COVID 验证窗口 — 新建 `src/backtest/{registry,score,engine}.py` + 抽出 `risk_score.score_from_indicator_values` helper（重复三次原则）+ `--backtest` 标志双轨指标（vix_fred 5152 条 / ted_spread 3942 条替代已停发的 LIBOR-OIS）。cache DB 9696 → 38059 条，覆盖 2006-2024。COVID 488 天回测跑通输出 CSV。**关键发现**：当前阈值偏迟钝——COVID 黑色星期一 VIX 72 / TED 1.35 仍只 YELLOW 52（9-11 指标 missing 稀释）。26 个新测试，pytest 458 → 484
 - [x] (2026-05-17) iter 53：2022 加息熊市窗口 + 三窗口对比报告 — 跑 `backtest_window("2022-01-01", "2023-06-30")` 出 546 天 CSV（max 82.07 RED 39 天集中 2022-10）；新建 `src/backtest/report.py` 含 `summarize_window` + `render_summary_md` + `generate_summary` 出 SUMMARY.md。**关键发现**：vix/vts/vvix/skew/sofr_iorb/fra_ois/china_10y 在两窗口都 100% 缺数据，HY/IG OAS 96% 缺（FRED 历史 2023+），导致综合分被严重稀释。8 个新测试，pytest 484 → 492
 - [x] (2026-05-17) iter 54：2008 雷曼周窗口 — 跑 `backtest_window("2008-01-01", "2009-06-30")` 出 547 天 CSV。**实测雷曼周（2008-09-15）**：VIX_FRED 32 / TED Spread 1.79、9-17 期间 VIX 36 / TED 3.03 都远超 RED 阈值，但综合分仅 YELLOW 32.5（9-12 个指标 missing 稀释）。三窗口缺失模式一致——确认 iter 55 校准方向：(a) cache DB 同步派生指标；(b) 综合分改"维度内最严触顶"。SUMMARY.md 更新为三窗口对比
-- [ ] iter 55：基于回测的阈值校准建议（含 ADR + 改阈值或权重）
-- [ ] iter 56：1970s/1929 老历史数据接口调研（可能需用户人工取数据）
+- [x] (2026-05-17) iter 55：前端美化（taste-skill 规范，深色精细化）— `_base.html` `<style>` 重写引入 CSS 变量系统（zinc-950 起调 + Geist 字体 CDN + liquid-glass shadow + 大 radius 12-20px）；scenarios-grid 改 Bento 非对称（A 美元荒占两行大卡）；plotly 三个 .py 配色同步（`#09090b` BG + `#f4f4f5` 文本）；chatbot 浮窗统一 accent `#60a5fa`；保留所有 class 名（pytest 仍 492 全过）。视觉等级：克制深色 + 玻璃质感 + Geist 单一 sans-serif
+- [ ] iter 56：阈值校准（cache DB 同步派生指标 + 维度内最严触顶 + 切点 65→50）
+- [ ] iter 57：1970s/1929 老历史数据接口调研（用户人工取）
 
 **暂搁**（不在路线图，待评估）：
 - 美元互换基差（USD basis swap）— 无免费源

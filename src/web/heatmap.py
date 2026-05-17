@@ -17,15 +17,15 @@ from src.utils.logger import get_logger
 
 log = get_logger(__name__)
 
-# 颜色与其他模块对齐
+# 颜色与 _base.html design tokens 同步（iter 55 taste-skill 美化）
 _COLOR_GREEN = "rgba(34,197,94,0.7)"
 _COLOR_YELLOW = "rgba(234,179,8,0.7)"
 _COLOR_RED = "rgba(239,68,68,0.85)"
-_COLOR_NA = "rgba(75,85,99,0.4)"
-_BG_PAPER = "#0d1014"
-_BG_PLOT = "#11151a"
-_TEXT = "#e5e7eb"
-_AXIS = "rgba(229,231,235,0.15)"
+_COLOR_NA = "rgba(82,82,91,0.4)"
+_BG_PAPER = "#09090b"
+_BG_PLOT = "#0f0f12"
+_TEXT = "#f4f4f5"
+_AXIS = "rgba(244,244,245,0.10)"
 
 
 def _level_to_int(level: Optional[Level]) -> int:
@@ -37,8 +37,8 @@ def _level_to_int(level: Optional[Level]) -> int:
 
 def _placeholder(message: str) -> str:
     return (
-        f'<div style="padding:80px 20px;text-align:center;color:#6b7280;'
-        f'font-size:14px;border:1px dashed #374151;border-radius:8px;">'
+        f'<div style="padding:80px 20px;text-align:center;color:#71717a;'
+        f'font-size:14px;border:1px dashed #1c1c20;border-radius:16px;">'
         f'{message}</div>'
     )
 
@@ -181,10 +181,10 @@ def build_risk_timeline_html(
     try:
         fig = go.Figure()
 
-        # 三档背景带
-        fig.add_hrect(y0=0, y1=25, fillcolor="rgba(34,197,94,0.10)", line_width=0, layer="below")
-        fig.add_hrect(y0=25, y1=65, fillcolor="rgba(234,179,8,0.10)", line_width=0, layer="below")
-        fig.add_hrect(y0=65, y1=100, fillcolor="rgba(239,68,68,0.13)", line_width=0, layer="below")
+        # 三档背景带（与 _base.html 主题同步）
+        fig.add_hrect(y0=0, y1=25, fillcolor="rgba(34,197,94,0.13)", line_width=0, layer="below")
+        fig.add_hrect(y0=25, y1=65, fillcolor="rgba(234,179,8,0.16)", line_width=0, layer="below")
+        fig.add_hrect(y0=65, y1=100, fillcolor="rgba(239,68,68,0.16)", line_width=0, layer="below")
 
         # 主折线
         fig.add_trace(
@@ -192,7 +192,7 @@ def build_risk_timeline_html(
                 x=list(dates),
                 y=list(scores),
                 mode="lines+markers",
-                line=dict(color="#e5e7eb", width=2),
+                line=dict(color="#f4f4f5", width=2),
                 marker=dict(size=4, color="#60a5fa"),
                 name="综合分",
                 hovertemplate="%{x|%Y-%m-%d}<br>综合分 <b>%{y:.1f}</b><extra></extra>",
@@ -202,9 +202,9 @@ def build_risk_timeline_html(
         # 切点水平线
         for ytv, yvl in ((25, "GREEN/YELLOW=25"), (65, "YELLOW/RED=65")):
             fig.add_hline(
-                y=ytv, line_color="rgba(156,163,175,0.5)", line_dash="dot", line_width=1,
+                y=ytv, line_color="rgba(161,161,170,0.4)", line_dash="dot", line_width=1,
                 annotation_text=yvl, annotation_position="top right",
-                annotation_font=dict(color="#9ca3af", size=10),
+                annotation_font=dict(color="#a1a1aa", size=10),
             )
 
         fig.update_layout(

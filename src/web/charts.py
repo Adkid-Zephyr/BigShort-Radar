@@ -17,25 +17,25 @@ from src.utils.logger import get_logger
 
 log = get_logger(__name__)
 
-# 颜色与 src/web/sparkline.py + app.py 对齐
-_COLOR_LINE = "#e5e7eb"
+# 颜色与 _base.html design tokens 同步（iter 55 taste-skill 美化）
+_COLOR_LINE = "#f4f4f5"
 _COLOR_LATEST_DOT = "#60a5fa"
-_FILL_GREEN = "rgba(34,197,94,0.10)"
-_FILL_YELLOW = "rgba(234,179,8,0.13)"
-_FILL_RED = "rgba(239,68,68,0.13)"
-_LINE_THRESHOLD = "rgba(156,163,175,0.5)"
-_BG_PAPER = "#0d1014"
-_BG_PLOT = "#11151a"
-_TEXT = "#e5e7eb"
-_AXIS = "rgba(229,231,235,0.15)"
+_FILL_GREEN = "rgba(34,197,94,0.13)"
+_FILL_YELLOW = "rgba(234,179,8,0.16)"
+_FILL_RED = "rgba(239,68,68,0.16)"
+_LINE_THRESHOLD = "rgba(161,161,170,0.4)"
+_BG_PAPER = "#09090b"
+_BG_PLOT = "#0f0f12"
+_TEXT = "#f4f4f5"
+_AXIS = "rgba(244,244,245,0.10)"
 
 
 def _placeholder_div(message: str) -> str:
     """无数据时的占位 div。"""
     return (
         f'<div class="chart-placeholder" '
-        f'style="padding:60px 20px;text-align:center;color:#6b7280;'
-        f'font-size:14px;border:1px dashed #374151;border-radius:8px;">'
+        f'style="padding:60px 20px;text-align:center;color:#71717a;'
+        f'font-size:14px;border:1px dashed #1c1c20;border-radius:16px;">'
         f'{message}</div>'
     )
 
