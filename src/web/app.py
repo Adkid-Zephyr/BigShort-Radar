@@ -20,11 +20,13 @@ from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import jp_10y as jp10y_ind
 from src.compute.indicators import on_rrp as on_rrp_ind
+from src.compute.indicators import skew as skew_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
 from src.compute.indicators import tga as tga_ind
 from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import vix_term_structure as vts_ind
+from src.compute.indicators import vvix as vvix_ind
 from src.compute.indicators import walcl as walcl_ind
 from src.compute.indicators import yield_curve as yc_ind
 from src.compute.indicators import yield_curve_10y3m as yc3m_ind
@@ -79,6 +81,24 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "direction": vts_ind.DIRECTION,
         # 派生指标：VIX/VIX3M 比值，没有单一官方页 → 链到 CBOE VIX term structure 介绍页
         "source_url": "https://www.cboe.com/tradable_products/vix/vix_options/specifications/",
+    },
+    {
+        "name": vvix_ind.NAME,
+        "label": "VVIX 恐慌之恐慌",
+        "classify": vvix_ind.classify_value,
+        "group": "波动率",
+        "threshold_low": vvix_ind.THRESHOLD_LOW,
+        "threshold_high": vvix_ind.THRESHOLD_HIGH,
+        "direction": vvix_ind.DIRECTION,
+    },
+    {
+        "name": skew_ind.NAME,
+        "label": "SKEW 黑天鹅定价",
+        "classify": skew_ind.classify_value,
+        "group": "波动率",
+        "threshold_low": skew_ind.THRESHOLD_LOW,
+        "threshold_high": skew_ind.THRESHOLD_HIGH,
+        "direction": skew_ind.DIRECTION,
     },
     # 曲线维度
     {
@@ -220,6 +240,10 @@ for _ind in _INDICATOR_REGISTRY:
         _ind.setdefault("source", on_rrp_ind.SOURCE)
     elif _name == tga_ind.NAME:
         _ind.setdefault("source", tga_ind.SOURCE)
+    elif _name == vvix_ind.NAME:
+        _ind.setdefault("source", vvix_ind.SOURCE)
+    elif _name == skew_ind.NAME:
+        _ind.setdefault("source", skew_ind.SOURCE)
 
 
 # 分组展示顺序（左到右、上到下；用户视角通常先看波动率再看信用再看曲线再看流动性）

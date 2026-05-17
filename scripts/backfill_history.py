@@ -30,11 +30,13 @@ from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import jp_10y as jp10y_ind
 from src.compute.indicators import on_rrp as on_rrp_ind
+from src.compute.indicators import skew as skew_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
 from src.compute.indicators import tga as tga_ind
 from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import vix_term_structure as vts_ind
+from src.compute.indicators import vvix as vvix_ind
 from src.compute.indicators import walcl as walcl_ind
 from src.compute.indicators import yield_curve as yc_ind
 from src.compute.indicators import yield_curve_10y3m as yc3m_ind
@@ -66,6 +68,8 @@ TARGETS: List[Target] = [
     Target(name=walcl_ind.NAME, source=walcl_ind.SOURCE),
     Target(name=on_rrp_ind.NAME, source=on_rrp_ind.SOURCE),
     Target(name=tga_ind.NAME, source=tga_ind.SOURCE),
+    Target(name=vvix_ind.NAME, source=vvix_ind.SOURCE),
+    Target(name=skew_ind.NAME, source=skew_ind.SOURCE),
 ]
 
 
