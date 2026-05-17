@@ -25,7 +25,10 @@ import sys
 from datetime import date, timedelta
 from typing import List, NamedTuple, Optional
 
+from src.compute.indicators import china_10y as china_10y_ind
+from src.compute.indicators import china_fx_reserves as china_fx_ind
 from src.compute.indicators import dxy as dxy_ind
+from src.compute.indicators import fra_ois as fra_ois_ind
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import jp_10y as jp10y_ind
@@ -33,6 +36,7 @@ from src.compute.indicators import on_rrp as on_rrp_ind
 from src.compute.indicators import skew as skew_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
 from src.compute.indicators import tga as tga_ind
+from src.compute.indicators import usdcny as usdcny_ind
 from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import vix_term_structure as vts_ind
@@ -70,6 +74,10 @@ TARGETS: List[Target] = [
     Target(name=tga_ind.NAME, source=tga_ind.SOURCE),
     Target(name=vvix_ind.NAME, source=vvix_ind.SOURCE),
     Target(name=skew_ind.NAME, source=skew_ind.SOURCE),
+    Target(name=fra_ois_ind.NAME, source=fra_ois_ind.SOURCE),  # 派生 FRED:DGS3MO-SOFR 跳过
+    Target(name=china_fx_ind.NAME, source=china_fx_ind.SOURCE),
+    Target(name=usdcny_ind.NAME, source=usdcny_ind.SOURCE),
+    Target(name=china_10y_ind.NAME, source=china_10y_ind.SOURCE),
 ]
 
 

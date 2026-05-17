@@ -15,7 +15,10 @@ from flask import Flask, abort, jsonify, render_template, request
 
 from src.compute import briefing as bf
 from src.compute import risk_score as rs
+from src.compute.indicators import china_10y as china_10y_ind
+from src.compute.indicators import china_fx_reserves as china_fx_ind
 from src.compute.indicators import dxy as dxy_ind
+from src.compute.indicators import fra_ois as fra_ois_ind
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import jp_10y as jp10y_ind
@@ -23,6 +26,7 @@ from src.compute.indicators import on_rrp as on_rrp_ind
 from src.compute.indicators import skew as skew_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
 from src.compute.indicators import tga as tga_ind
+from src.compute.indicators import usdcny as usdcny_ind
 from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import vix_term_structure as vts_ind
@@ -150,6 +154,17 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         # 派生指标：SOFR - IORB 利差，链 FRED SOFR 主页
         "source_url": "https://fred.stlouisfed.org/series/SOFR",
     },
+    # 融资市场维度（iter 46 加，THESIS §4.3）
+    {
+        "name": fra_ois_ind.NAME,
+        "label": "FRA-OIS 代理（3M T-Bill - SOFR）",
+        "classify": fra_ois_ind.classify_value,
+        "group": "流动性",
+        "threshold_low": fra_ois_ind.THRESHOLD_LOW,
+        "threshold_high": fra_ois_ind.THRESHOLD_HIGH,
+        "direction": fra_ois_ind.DIRECTION,
+        "source_url": "https://fred.stlouisfed.org/series/DGS3MO",
+    },
     # 跨市场 / 日本维度
     {
         "name": usdjpy_ind.NAME,
@@ -206,6 +221,34 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "threshold_high": tga_ind.THRESHOLD_HIGH,
         "direction": tga_ind.DIRECTION,
     },
+    # 中国维度（iter 46 加，THESIS §4.4 三角联动）
+    {
+        "name": china_fx_ind.NAME,
+        "label": "中国外汇储备",
+        "classify": china_fx_ind.classify_value,
+        "group": "中国",
+        "threshold_low": china_fx_ind.THRESHOLD_LOW,
+        "threshold_high": china_fx_ind.THRESHOLD_HIGH,
+        "direction": china_fx_ind.DIRECTION,
+    },
+    {
+        "name": usdcny_ind.NAME,
+        "label": "USDCNY 在岸人民币",
+        "classify": usdcny_ind.classify_value,
+        "group": "中国",
+        "threshold_low": usdcny_ind.THRESHOLD_LOW,
+        "threshold_high": usdcny_ind.THRESHOLD_HIGH,
+        "direction": usdcny_ind.DIRECTION,
+    },
+    {
+        "name": china_10y_ind.NAME,
+        "label": "中国 10Y 国债收益率",
+        "classify": china_10y_ind.classify_value,
+        "group": "中国",
+        "threshold_low": china_10y_ind.THRESHOLD_LOW,
+        "threshold_high": china_10y_ind.THRESHOLD_HIGH,
+        "direction": china_10y_ind.DIRECTION,
+    },
 ]
 
 # 注册表的快速索引（O(1) 按 name 查），iter 40 加（详情页路由用）
@@ -244,10 +287,18 @@ for _ind in _INDICATOR_REGISTRY:
         _ind.setdefault("source", vvix_ind.SOURCE)
     elif _name == skew_ind.NAME:
         _ind.setdefault("source", skew_ind.SOURCE)
+    elif _name == fra_ois_ind.NAME:
+        _ind.setdefault("source", fra_ois_ind.SOURCE)
+    elif _name == china_fx_ind.NAME:
+        _ind.setdefault("source", china_fx_ind.SOURCE)
+    elif _name == usdcny_ind.NAME:
+        _ind.setdefault("source", usdcny_ind.SOURCE)
+    elif _name == china_10y_ind.NAME:
+        _ind.setdefault("source", china_10y_ind.SOURCE)
 
 
 # 分组展示顺序（左到右、上到下；用户视角通常先看波动率再看信用再看曲线再看流动性）
-_GROUP_ORDER = ["波动率", "信用", "曲线", "流动性", "政策", "跨市场", "估值"]
+_GROUP_ORDER = ["波动率", "信用", "曲线", "流动性", "政策", "跨市场", "中国", "估值"]
 
 
 # Level → 颜色（Tailwind 风格的色值，inline style 用）

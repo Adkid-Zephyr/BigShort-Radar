@@ -92,8 +92,8 @@
 - [x] (2026-05-17) iter 43：加速度（Δ 列，异常监测视角 C）— `src/web/acceleration.py` 最小二乘 `linear_slope` + `compute_acceleration` 短窗 5d / 长窗 20d，加速恶化判定结合方向（短斜率与 direction 一致 + |短| > |长|）。模板加 Δ 列（↗=加速恶化标红 / · =不加速 / —=数据不足），hover 提示短长斜率值。14 个新测试。**实测**：DXY 短斜率 0.66/d > 长斜率 0.31/d 标 ↗ 红字（美元加速走强）
 - [x] (2026-05-17) iter 44：政策反应维度 3 条 — `src/compute/indicators/walcl.py` (FRED:WALCL up >9M=RED) + `on_rrp.py` (FRED:RRPONTSYD down <100B=RED) + `tga.py` (FRED:WTREGEN up >1T=RED)。`_GROUP_ORDER` 加"政策"，`_GROUP_WEIGHTS` 重平衡（曲线 25→22 / 信用 25→22 / 跨市场 20→18 / 流动性 15→13 / 波动率 15→13 / 政策 0→12）。daily_fetch + backfill TARGETS 同步。21 个新测试，pytest 341 → 362。**实测**：ON RRP 折线全部贴底（缓冲已耗尽 RED）；WALCL 6.8T 绿；TGA 1T 黄。综合分 13 维度参与
 - [x] (2026-05-17) iter 45：波动率结构 2 条 — `src/compute/indicators/vvix.py`（YF:^VVIX up，阈值 90/120）+ `skew.py`（YF:^SKEW up，阈值 130/145）。注册到 _INDICATOR_REGISTRY 波动率组 + daily_fetch + backfill。13 个新测试，pytest 362 → 375。**已知**：Yahoo 限速 5 年 backfill 失败（与 VIX 同问题），等限速过 + 每天 daily_fetch 累积 / 后续 iter 改用 CBOE 直接源
-- [ ] iter 46：FRA-OIS 代理（FRED 衍生：3M T-bill - SOFR）+ 中国维度骨架（FRED 系列）
-- [ ] iter 47：中国维度 3 条上线 — 中国外汇储备（FRED:TRESEGCNM052N 月值）/ USDCNY 在岸（FRED:DEXCHUS）/ 中国 10Y（FRED:IRLTLT01CNM156N 月值）
+- [x] (2026-05-17) iter 46：FRA-OIS 代理 + 中国维度 3 条 — `fra_ois.py` (FRED:DGS3MO - FRED:SOFR 派生，up，阈值 0.10/0.30) 入流动性组；`china_fx_reserves.py` (FRED:TRESEGCNM052N down，阈值 3.0T/3.1T 美元) + `usdcny.py` (FRED:DEXCHUS up，阈值 7.10/7.30) + `china_10y.py` (FRED:IRLTLT01CNM156N down，阈值 2.0/2.5) 入"中国"组。`_GROUP_WEIGHTS` 再平衡（曲线/信用 22→20 / 流动性 13→14 / 波动率 13→12 / 跨市场 18→14 / 政策 12→10 / 中国 10）。25 个新测试，pytest 375 → 400。**实测**：USDCNY 1246 日值 + 外储 57 月值 backfill 成功；综合分 20.83 GREEN → 26.33 YELLOW（中国维度纳入显示风险）
+- [ ] iter 47：中国维度 3 条上线（已并入 iter 46 完成）
 - [ ] iter 48：异常事件流（30 天倒序）— 新页面 `/events`，列出"翻档 / 突破阈值 / 同时多指标走阔"的事件，用 base.html 与 nav
 - [ ] iter 49：组合信号告警规则 — 5 个崩盘剧本检测器（剧本 A 美元荒 / B 国债基差 / C 日本 carry / D AI 泡沫 / E 信用滞后崩 各一条规则）
 - [ ] iter 50：风险矩阵热力图 + 综合温度计 2 年时间线 — 新页面 `/heatmap` 与 `/timeline`
