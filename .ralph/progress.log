@@ -5,3 +5,4 @@ iter 34a | 2026-05-17 16:09 | bdef04a | tests 167/167 | ralph loop 脚手架（r
 iter 34b | 2026-05-17 16:33 | 5cb5f17 | tests 179/179 | visual_check.sh + template + loop_prompt §4.5 multimodal 自检（chromium 待用户首装）
 iter 35 | 2026-05-17 17:03 | aae7dd3 | tests 197/197 | 指标 source 列改可点击官方页外链（FRED/YF/OECD/CBOE 前缀 + registry source_url）
 iter 36 | 2026-05-17 17:39 | ac06ce3 | tests 197/197 | empty 行 source 链接 + GitHub 公开化（filter-branch + THESIS_PUBLIC + LICENSE + README 重写 + push）
+iter 37 | 2026-05-17 18:27 | c04960d | tests 197/197 | README 重写技术文档版（0 emoji / 0 营销词）+ PLAN 14 轮路线图 + DECISIONS ADR
