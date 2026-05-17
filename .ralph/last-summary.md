@@ -1,49 +1,53 @@
 # 上一轮总结
 
-迭代 37（2026-05-17）：README 文风重写 + 第二阶段 14 轮路线图。
+迭代 38（2026-05-17）：历史数据 cache DB 基础设施 + akshare 决策方案 B。
 
-本轮做了：
+## 本轮做了
 
-- **README.md 全量重写**（240 行 → 246 行密度更高）：
-  - 调研 6 个金融/量化开源项目（AKShare/Zipline/Qlib/QSTrader/yfinance/FinanceDatabase）的 README 文风
-  - 对照规则：去 emoji、去营销词（"赋能/极致/强大/优雅/为人类"）、一句话简介改事实陈述（不用"X is a Y" 模板）、章节扁平化、工程师口吻 70%+价值阐述 30%
-  - 验证：grep 0 emoji / 0 营销词
-  - 保留：徽章、阈值表、Quickstart、API key、文件导览
-  - 加：Roadmap 段写入 14 轮路线图
-- **PLAN.md** 加"第二阶段路线图（iter 38–50）"段：
-  - iter 37 README ✅
-  - iter 38 历史 cache DB + akshare ADR
-  - iter 39 Sparkline 90 天
-  - iter 40 同环比对比
-  - iter 41 5 年回填 + Z-score
-  - iter 42 加速度
-  - iter 43 政策 3 条 (WALCL/ON RRP/TGA)
-  - iter 44 波动率 2 条 (VVIX/SKEW)
-  - iter 45 FRA-OIS + 中国骨架
-  - iter 46 中国 6 条
-  - iter 47 异常事件流
-  - iter 48 组合信号 + 5 剧本检测器
-  - iter 49 热力图 + 时间线
-  - iter 50 政策对冲对比 + 阈值校准
-  - 暂搁：USD basis swap / 国债基差杠杆 / TIC / 日 30Y（无源或 HTML 爬虫）
-  - 历史回测后置到 iter 51+
-- **DECISIONS.md** 加 iter 37 ADR：文风规则 + 路线图决策（26 条 / 7 维度 / 异常监测分层）+ akshare 引入需 ADR 评估 + 历史回测后置原因
+### A. akshare 引入决策（命中暂停清单）
 
-测试：pytest 197 通过 / 0 失败 / 0 skip（纯文档变更）。
+写 BLOCKED.md 评估 akshare 28 个传染依赖（mini-racer V8 引擎 / lxml / curl_cffi 爬虫栈），用户拍板**方案 B：不引入**，仅用 FRED 能拿到的 3 条中国指标（中国外汇储备 / USDCNY / 中国 10Y）。
 
-git：iter 36 a4f7022 → iter 37 待 commit。
+**总指标终态从 26 条下调到 19 条**（10 现有 + 政策 3 + 波动率 2 + 融资 1 + 中国 3）。
+DECISIONS.md 写入完整 ADR。
 
-## 下一轮（iter 38）
+### B. 历史 cache DB 骨架（4 个新文件）
 
-历史数据基础设施：
+- `src/store/history_db.py`（210 行）：独立 cache DB（`data/historical_cache.sqlite`）
+  - schema：`history_points` 表 + `idx_hist_name_date` 索引
+  - API：`open_history_db` / `upsert_point` / `bulk_upsert` / `get_series_range` / `count_points`
+  - 与主 DB 完全隔离，模式参考 `src/store/db.py`
+- `src/fetch/history_fetcher.py`（70 行）：通用历史路由器
+  - `fetch_history(source, start, end)` 按前缀分发到 fred_client / yf_client
+  - 大小写无关、空格容错、派生（含 `,`）拒绝
+- `scripts/backfill_history.py`（150 行）：一次性回填脚本
+  - `--start` / `--end` / `--years 5` / `--only <name>` 参数
+  - 派生指标（含 `/`，或 FRED 前缀含 `-` 如 SOFR-IORB）自动跳过
+  - 失败一条不影响其他
+- 测试：47 个新用例
+  - `tests/test_history_db.py` 17 用例（CRUD / NaN/Inf / idempotent / range 查询）
+  - `tests/test_history_fetcher.py` 14 用例（路由 / 大小写 / 边界）
+  - `tests/test_backfill_history.py` 16 用例（派生识别 / mock fetcher / --only 过滤）
 
-1. **akshare 加白名单**：先评估对"测试不打真实网络"的影响，写专门 ADR 到 DECISIONS.md，然后加 requirements.txt
-2. 新建 `data/historical_cache.sqlite`（独立 schema）
-3. 新建 `src/store/history_db.py`：cache DB 的 upsert/get_series 操作
-4. 新建 `src/fetch/history_fetcher.py`：通用历史拉取（FRED `start=` / YF `period="5y"` / akshare 各 series wrapper）
-5. 新建 `scripts/backfill_history.py`：一次性回填脚本
-6. mock 各 client 写 `tests/test_history_*`
+测试：pytest **244 通过 / 0 失败 / 0 skip**（197 → 244，+47）。
 
-iter 38 不展示新指标，只搭基础设施。iter 39 起 Sparkline 才会用上这些数据。
+git：iter 37 8295ff8 → iter 38 待 commit。
 
-下一句"继续"将进 iter 38。
+## 下一轮（iter 39）
+
+Sparkline 90 天微折线（首发异常监测视角）：
+
+1. 在 dashboard 模板每条指标行右边加 SVG 微折线 +/- 阈值带（90 天）
+2. 数据来源：`history_db.get_series_range`（如有）+ 主 DB `get_series` 兜底
+3. 纯前端 SVG，不引依赖
+4. 视觉自检：跑 visual_check.sh（chromium 装好后看图）
+
+注意：iter 38 没真跑 backfill，cache DB 还空。iter 39 实施前需要先用户**真跑一次**：
+
+```bash
+.venv/bin/python -m scripts.backfill_history --years 5
+```
+
+会调真实 FRED + Yahoo API，拉 8 条非派生指标过去 5 年序列，约 ~12000 行数据。
+
+下一句"继续"将进 iter 39。

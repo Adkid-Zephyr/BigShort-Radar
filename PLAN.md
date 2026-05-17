@@ -84,15 +84,15 @@
 
 ### 第二阶段路线图（iter 38–50，按用户 2026-05-17 拍板的"扩到 26 条 + 异常监测多视角 + 历史可视化"）
 
-- [ ] iter 38：历史数据 cache DB 骨架 + akshare 引入 ADR — 新建 `data/historical_cache.sqlite` + `src/store/history_db.py` + `src/fetch/history_fetcher.py` + `scripts/backfill_history.py`，akshare 加白名单走专门 ADR 评估
+- [x] (2026-05-17) iter 38：历史数据 cache DB 骨架（**akshare 已拍板方案 B：不引入**，仅用 FRED+YF）— 新建 `data/historical_cache.sqlite` + `src/store/history_db.py` + `src/fetch/history_fetcher.py` + `scripts/backfill_history.py`，47 个新测试覆盖 cache DB CRUD + fetcher 路由 + backfill 脚本派生识别
 - [ ] iter 39：Sparkline 90 天微折线（首发异常监测视角）— 每条指标右边加迷你折线 + 阈值带 SVG，纯前端，不引依赖
 - [ ] iter 40：同比 / 环比对比表 — 行内列：今日 / 上周 / 上月 / 上季度 + 变化百分比
 - [ ] iter 41：5 年历史回填脚本跑一次 + Z-score 列 — 当前值在过去 5 年分布的位置（百分位）
 - [ ] iter 42：加速度（5/20 天斜率）列 — 标"突然变陡"的指标
 - [ ] iter 43：政策反应维度 3 条 — WALCL（FRED:WALCL）/ ON RRP（FRED:RRPONTSYD）/ TGA（FRED:WTREGEN）
 - [ ] iter 44：波动率结构 2 条 — VVIX（YF:^VVIX）/ SKEW（YF:^SKEW 或 CBOE）
-- [ ] iter 45：FRA-OIS 代理（FRED 衍生：3M T-bill - SOFR）+ 中国维度骨架（akshare wrap）
-- [ ] iter 46：中国维度 6 条全部上线 — 中国外储 / 上证 PE / USDCNY 在岸 / 中国 10Y 国债 / USDCNH 离岸 / 北向资金月度多空，dashboard 加"中国"分组
+- [ ] iter 45：FRA-OIS 代理（FRED 衍生：3M T-bill - SOFR）+ 中国维度 3 条骨架（**方案 B**：FRED 拿到的）
+- [ ] iter 46：中国维度 3 条上线 — 中国外汇储备（FRED:TRESEGCNM052N 月值）/ USDCNY 在岸（FRED:DEXCHUS）/ 中国 10Y（FRED:IRLTLT01CNM156N 月值），dashboard 加"中国"分组
 - [ ] iter 47：异常事件流（30 天倒序）— 新页面 `/events`，列出"翻档 / 突破阈值 / 同时多指标走阔"的事件
 - [ ] iter 48：组合信号告警规则 — 5 个崩盘剧本检测器（剧本 A 美元荒 / B 国债基差 / C 日本 carry / D AI 泡沫 / E 信用滞后崩 各一条规则）
 - [ ] iter 49：风险矩阵热力图 + 综合温度计 2 年时间线 — 新页面 `/heatmap` 与 `/timeline`
@@ -103,6 +103,9 @@
 - 国债基差交易杠杆（CFTC TFF 周报）— HTML 爬虫依赖暂停清单
 - 美国 TIC 数据 — 财政部 HTML 同上
 - 日本 30Y 国债 — FRED 无日值，OECD 月值且数据延迟
+- akshare 中国维度 3 条（上证 PE / USDCNH 离岸 / 北向资金）— iter 38 决策方案 B 不引依赖暂搁；如未来用户重启需走单独 ADR
+
+**总指标终态**：现 10 条 + 政策 3 + 波动率 2 + 融资 1 + 中国 3 = **19 条 / 7 维度**（原计划 26 条，方案 B 拍板后下调）
 
 **历史回测框架**（THESIS §6.1，原最高优先）后置到 iter 51+，理由：用户拍板先扩指标 + 异常监测，再做回测。回测仍在路线图上。
 
