@@ -1,35 +1,43 @@
 # 上一轮总结
 
-迭代 34a（2026-05-17）：ralph loop 自动迭代脚手架落地。
+迭代 34b（2026-05-17）：ralph loop multimodal 自检层落地。
 
 本轮做了：
 
-- 新建 `scripts/ralph_loop.sh`（bash，可执行）：
-  - 参数 `max_iter`（默认 10）+ `--dry-run`
-  - 每轮启 `codebuddy -p --max-turns 80 -y`，stdin 喂 `.ralph/loop_prompt.md`
-  - 兜底 3 道防线：BLOCKED.md 存在停 / pytest 红写 BLOCKED 停 / iteration.txt 没 +1 停
-  - 全英文日志（避开 macOS bash 3.2 中文紧贴变量的解析坑）
-  - dry-run 联调通过：脚本骨架 OK
-- 新建 `.ralph/loop_prompt.md`：单轮 prompt 模板，固化"必读 8 文件顺序 + 暂停清单 + 文档同步 6 条 + 输出协议 LOOP_OK/LOOP_BLOCKED/LOOP_FAIL"
-- 新建 `.ralph/progress.log`：追加式单行历史（互补 last-summary.md 的覆盖式），对应 ralph 原版的 progress.txt
-- 文档同步：
-  - `PROMPT.md` 加 §"自动 loop 模式"段（用法 / 机制 / 与 ralph 原版差异 / 风险）
-  - `HANDOFF.md` 加 §9 ralph loop 简介
-  - `PLAN.md` P3.6 加"工程化基础设施"小节，34a 标 [x]，34b multimodal 自检挂入 [ ]
-  - `DECISIONS.md` 追加 iter 34a ADR
+- 新建 `scripts/visual_check.sh`（可执行）：
+  - 自起 Flask:5050（除非 `--no-flask`），用 `playwright-cli`（chromium）截 1440×900 dashboard 全图 + DOM 快照 + console + flask log
+  - 输出到 `.ralph/visual_check_iter<N>/`
+  - graceful 降级：检测不到 chromium 自动 rc=1 + 清晰指引（不会卡死）
+  - trap EXIT 自动 cleanup（停 Flask + 关 playwright session）
+- 新建 `.ralph/visual_check_template.md`：6 section 报告模板（改动摘要 / 自检命令 / 看图判断必查项 / 看图问题 / 结论 PASS-FAIL-PARTIAL / TODO）
+- 更新 `.ralph/loop_prompt.md` §4.5：改动 `templates/` 或 `src/web/` 必须跑 visual_check + 用 Read 看图 + 写报告。明确这是"防 pytest 绿但 UI 烂"的最后一道线
+- 新建 `tests/test_visual_check.py`：7 用例验脚本骨架（不真启浏览器），mock 的方式是直接 grep 脚本内容
+- 文档同步：PROMPT.md §自动 loop 模式补 multimodal 自检段 / HANDOFF.md §10 / PLAN.md P3.6 标 [x] / DECISIONS.md iter 34b ADR / .gitignore 加 visual_check_iter*/ + .playwright-cli/
 
-测试：pytest 167 通过 / 0 失败 / 0 skip（纯新增脚本+文档，未动指标代码）。
+测试：pytest 179 通过 / 0 失败 / 0 skip（+12 个新测试）。
 
-git：iter 33 e9b3687 → iter 34a 待 commit。
+git：iter 34a 6918d4e → iter 34b 待 commit。
 
-下一项 PLAN（按用户 2026-05-17 锁定的优先级）：
+**遗留事项（不阻塞）**：本机 chromium 安装在 `playwright-cli install-browser chromium` 步骤卡了 10+ 分钟未完成（疑似下载源/网络问题），脚本已加 graceful 降级。等用户网络条件好时一键装：
 
-- **iter 34b：ralph loop multimodal 自检**
-  - dashboard 改动后，agent 调 playwright-cli skill 截图本地 :5050
-  - 用 Read 工具读截图 → multimodal 看图判断 UI 是否符合预期
-  - 把判断结果写 `.ralph/visual_check_<iter>.md`
-  - 这一步是"防止 agent 写完代码自吹自擂"的最后一道防线
-  - 注意：playwright-cli 是 codebuddy plugin skill，不是依赖（不触发暂停清单）
-- 之后 iter 35 起开历史回测框架（THESIS §6.1）
+```bash
+playwright-cli install-browser chromium
+# 国内可能需 HTTPS_PROXY 或 PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright
+```
 
-按用户授权"先做工程基础设施，再开科学校准"。下一句"继续"将进 iter 34b。
+下一项 PLAN（按 THESIS §6 优先级）：
+
+- **iter 35：历史回测框架**（最高优先，THESIS §6.1）
+  - 新建 `src/backtest/loader.py`：从 FRED 拉 8 条已上线指标的历史长序列（2006-01 至今），缓存到独立 `data/backtest_cache.sqlite`
+  - 新建 `src/backtest/runner.py`：给定日期窗口 + 指标集，对历史每天调 thresholds.classify + risk_score，返回 DataFrame
+  - 不动主流程、不改主 schema、不改 INDICATORS 阈值
+  - 测试：mock FRED，验关键路径
+  - 这是项目从"凭印象拍阈值"转"用历史校准阈值"的转折点
+
+候选下一步备选：
+- iter 36：z-score / 历史分位替换三档跳变（THESIS §6.2）
+- iter 37：加速度分量（过去 N 天斜率）
+- iter 38：维度间乘法叠加 + 组合信号检测
+- iter 39：融资市场维度补缺（FRA-OIS / USD basis swap / 国债基差杠杆）
+
+按用户授权"先做工程基础设施，再开科学校准"，工程基础设施已就绪。下一句"继续"将进 iter 35（真正的科学校准开始）。

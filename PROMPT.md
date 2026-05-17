@@ -123,3 +123,15 @@ bash scripts/ralph_loop.sh 5 --dry-run  # 联调用，不真启动 codebuddy
 - 不用：要走 ADR 拍板的决策项 / 有暂停清单风险的任务（先手动评估）
 
 **风险**：agent 可能误判"我是不是有 8 文件该读"——`.ralph/loop_prompt.md` 已固化清单，但仍可能漏。每天人工 `tail .ralph/progress.log` 抽查一次。
+
+**Multimodal 自检（iter 34b 加）**：改动前端（`templates/` / `src/web/`）后必须跑：
+
+```bash
+bash scripts/visual_check.sh
+```
+
+会启 Flask + 用 playwright-cli（chromium）截 dashboard 全图 + 抓 console + DOM 快照到 `.ralph/visual_check_iter<N>/`。
+然后 agent 用 Read 工具看截图，照 `.ralph/visual_check_template.md` 填 `.ralph/visual_check_iter<N>.md`。
+**这是防"agent 写完代码 pytest 绿就自吹自擂"的最后一道防线**——pytest 验逻辑，看图验眼睛。
+
+首次使用需装 chromium：`playwright-cli install-browser chromium`（国内可能要代理）。脚本检测不到浏览器会 graceful 退出并给指引。

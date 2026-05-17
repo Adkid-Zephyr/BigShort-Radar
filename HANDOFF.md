@@ -125,3 +125,18 @@ bash scripts/ralph_loop.sh 10
 
 完整说明见 `PROMPT.md` §"自动 loop 模式"。
 跨轮单行进度记录在 `.ralph/progress.log`（追加式，不要覆盖写）。
+
+## 10. Multimodal 自检（iter 34b）
+
+改动前端（`templates/` / `src/web/`）后必须：
+
+```bash
+bash scripts/visual_check.sh
+```
+
+输出到 `.ralph/visual_check_iter<N>/`：dashboard.png / dom.yaml / console.txt / flask.log。
+然后用 Read 工具看截图，照 `.ralph/visual_check_template.md` 填 `.ralph/visual_check_iter<N>.md`。
+
+**首次需装浏览器**：`playwright-cli install-browser chromium`（国内可能要代理或 npm mirror）。
+
+防"pytest 绿但 UI 烂"的最后一道线。

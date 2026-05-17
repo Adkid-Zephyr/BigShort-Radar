@@ -21,6 +21,8 @@ __pycache__/
 # Ralph runtime
 .ralph/iteration.txt
 .ralph/loop_runs.log
+.ralph/visual_check_iter*/
+.playwright-cli/
 
 # OS
 .DS_Store

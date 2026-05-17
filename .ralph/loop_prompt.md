@@ -51,6 +51,21 @@
 
 影响就改，不影响就跳过。**不要等用户提醒。**
 
+### 第 4.5 步：前端改动 → 跑 visual_check（multimodal 自检）
+
+如果本轮**改动了** `templates/` / `src/web/` / 任何影响 dashboard 渲染的代码：
+
+1. 跑 `bash scripts/visual_check.sh` → 输出在 `.ralph/visual_check_iter<N>/`
+2. 用 Read 工具读 `.ralph/visual_check_iter<N>/dashboard.png`（你是多模态 agent，能看图）
+3. 复制 `.ralph/visual_check_template.md` 到 `.ralph/visual_check_iter<N>.md`，逐项填判断
+4. 看图 + console.txt 都 OK 才算通过；FAIL 就回去改代码再来一遍
+5. 自检报告与代码一起 commit
+
+**这是防"写完代码自吹自擂"的防线**——pytest 绿不代表 UI 对。
+
+如果本轮没动前端，跳过这步。
+
+
 ### 第 5 步：留痕（缺一不可）
 
 1. PLAN.md 把本轮 `[ ]` 改成 `[x] (YYYY-MM-DD)`

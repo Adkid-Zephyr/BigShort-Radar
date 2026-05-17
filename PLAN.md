@@ -76,7 +76,7 @@
 ### 工程化基础设施
 
 - [x] (2026-05-17) ralph loop 脚手架（iter 34a）— `scripts/ralph_loop.sh` + `.ralph/loop_prompt.md` + `.ralph/progress.log`，支持自动连续跑 N 轮，兜底 pytest/BLOCKED/iter 校验
-- [ ] ralph loop multimodal 自检（iter 34b）— dashboard 改动后调 playwright-cli 截图 → Read 截图 → agent 自己看图判断 UI 正确性，写 `.ralph/visual_check_<iter>.md`
+- [x] (2026-05-17) ralph loop multimodal 自检（iter 34b）— `scripts/visual_check.sh` + `.ralph/visual_check_template.md` + loop_prompt §4.5。前端改动后跑 visual_check 截图，agent 用 Read 看图自检，写 `.ralph/visual_check_iter<N>.md`。chromium 浏览器需用户首次装（国内代理）
 
 ### 高优先（直接服务 THESIS 核心）
 
