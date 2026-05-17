@@ -78,7 +78,7 @@
 - [x] (2026-05-17) ralph loop 脚手架（iter 34a）— `scripts/ralph_loop.sh` + `.ralph/loop_prompt.md` + `.ralph/progress.log`，支持自动连续跑 N 轮，兜底 pytest/BLOCKED/iter 校验
 - [x] (2026-05-17) ralph loop multimodal 自检（iter 34b）— `scripts/visual_check.sh` + `.ralph/visual_check_template.md` + loop_prompt §4.5。前端改动后跑 visual_check 截图，agent 用 Read 看图自检，写 `.ralph/visual_check_iter<N>.md`。chromium 浏览器需用户首次装（国内代理）
 - [x] (2026-05-17) 指标 source 列改成可点击官方页外链（iter 35）— `src/web/source_links.py` FRED/YF/OECD/CBOE 前缀映射 + registry `source_url` 字段优先，模板蓝色 anchor + ↗ 箭头 + 新页签
-- [ ] empty 行（暂无数据）也保留 source 链接列展示 — 现 colspan=4 占位把链接吞了，让用户没数据时也能跳官方页查
+- [x] (2026-05-17) empty 行（暂无数据）也保留 source 链接列展示（iter 36）— colspan=3 + 独立 source 列展示"查源"链接
 
 ### 高优先（直接服务 THESIS 核心）
 
@@ -145,7 +145,7 @@
 ## P4.5 — 产品化
 
 - [x] (2026-05-15) README 完整化：启动指南、launchd 安装、API key 申请、维度阈值一览表 — iter 32
-- [ ] GitHub 推送（待用户拍 4 项决策：可见性 / 账号 / 仓库名 / License）
+- [x] (2026-05-17) GitHub 推送（iter 36）— public 仓库 `Adkid-Zephyr/BigShort-Radar`、CC BY-NC 4.0、THESIS.md 私有不进 git（filter-branch 清历史）、THESIS_PUBLIC.md 脱敏版进 repo、README 全量重写
 
 ## P5 — 上云（条件触发：系统稳定运行 1 个月以上）
 
