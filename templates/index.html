@@ -274,7 +274,14 @@
                   {{ r.label }}
                 </td>
                 {% if r.value is none %}
-                  <td class="empty" colspan="4">暂无数据，先跑 daily_fetch</td>
+                  <td class="empty" colspan="3">暂无数据，先跑 daily_fetch</td>
+                  <td>
+                    {% if r.source_url %}
+                      <a class="source-link" href="{{ r.source_url }}" target="_blank" rel="noopener noreferrer">查源</a>
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
                 {% else %}
                   <td class="value">{{ "%.2f"|format(r.value) }}</td>
                   <td class="level" style="color: {{ r.color }};">{{ r.level }}</td>

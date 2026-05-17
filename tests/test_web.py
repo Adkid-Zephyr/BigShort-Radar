@@ -68,6 +68,9 @@ def test_index_empty_when_no_data(tmp_path):
         assert resp.status_code == 200
         body = resp.get_data(as_text=True)
         assert "暂无数据" in body
+        # 即使无数据，VIX 期限结构（registry 手填 source_url）应该露出"查源"链接
+        assert "cboe.com" in body
+        assert "查源" in body
 
 
 def test_index_red_level_color(client, db_path):
