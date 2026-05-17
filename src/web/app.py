@@ -31,6 +31,7 @@ from src.store import history_db as hdbmod
 from src.utils.config import load_settings
 from src.utils.logger import get_logger
 from src.web.charts import build_indicator_chart_html
+from src.web.comparisons import build_comparisons
 from src.web.source_links import source_url as derive_source_url
 from src.web.sparkline import build_sparkline_svg
 
@@ -260,20 +261,42 @@ def _fetch_sparkline_dates(
 
 
 def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
-    """从 DB 拉每个已注册指标的最新值，组装渲染行（含 group / source_url / sparkline_svg）。"""
+    """从 DB 拉每个已注册指标的最新值，组装渲染行（含 group / source_url / sparkline_svg / comparisons）。"""
     rows: List[Dict[str, Any]] = []
     for ind in _INDICATOR_REGISTRY:
         latest = dbmod.get_latest(conn, ind["name"])
         # source_url：registry 手填优先，没填走自动推导（FRED:/YF: 等前缀）
         registry_url = ind.get("source_url")
-        # sparkline：取近 90 天历史值（先 cache DB，再主 DB 兜底）
-        spark_values = _fetch_sparkline_values(conn, ind["name"], days=90, history_db_path=history_db_path)
+        # sparkline + comparisons 共用 history pairs
+        spark_dates, spark_values = _fetch_history_pairs(
+            conn, ind["name"], days=120, history_db_path=history_db_path
+        )
         sparkline_svg = build_sparkline_svg(
-            values=spark_values,
+            values=spark_values[-90:] if len(spark_values) > 90 else spark_values,  # sparkline 仅展示最近 90
             threshold_low=ind.get("threshold_low"),
             threshold_high=ind.get("threshold_high"),
             direction=ind.get("direction", "up"),
         )
+
+        # 同环比对比（7d / 30d / 90d）
+        today_d = None
+        if latest is not None and latest.get("date"):
+            try:
+                today_d = datetime.strptime(str(latest["date"])[:10], "%Y-%m-%d").date()
+            except ValueError:
+                today_d = None
+        try:
+            comparisons = build_comparisons(
+                dates=spark_dates,
+                values=spark_values,
+                today_value=latest["value"] if latest else None,
+                today_date=today_d,
+                direction=ind.get("direction", "up"),
+                lookbacks=(7, 30, 90),
+            )
+        except Exception as e:  # noqa: BLE001 — 防御性
+            log.warning("comparisons 计算 %s 失败: %s", ind["name"], e)
+            comparisons = {7: {}, 30: {}, 90: {}}
 
         if latest is None:
             rows.append({
@@ -288,6 +311,7 @@ def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
                 "source_url": registry_url,  # 即使无数据也保留外链供查阅
                 "ingested_at": None,
                 "sparkline_svg": sparkline_svg,
+                "comparisons": comparisons,
             })
             continue
         level = ind["classify"](latest["value"])
@@ -304,6 +328,7 @@ def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
             "source_url": url,
             "ingested_at": latest["ingested_at"],
             "sparkline_svg": sparkline_svg,
+            "comparisons": comparisons,
         })
     return rows
 

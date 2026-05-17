@@ -1,74 +1,34 @@
 # 上一轮总结
 
-迭代 40（2026-05-17）：Sparkline 可点击 + 指标详情页 + base.html 多页架构起点。
+迭代 41（2026-05-17）：同环比对比表（行内异常监测视角 H）。
 
 ## 本轮做了
 
-### A. 多页架构基础
+- `src/web/comparisons.py` 新建：
+  - `build_comparisons(dates, values, today_value, today_date, direction, lookbacks)` 返 `{7: {...}, 30: ..., 90: ...}`
+  - 每个 dict 含 `lookback_value / pct_change / abs_change / deteriorate`
+  - `_nearest_value_on_or_before` 容忍目标日期没数据 + 跳过 NaN
+  - 恶化判定按 direction（up + 上升 = 恶化 / down + 下降 = 恶化）
+- `src/web/app.py` `_build_rows`：history pairs 改 days=120（覆盖 90d 回看），新增 comparisons 字段
+- `templates/index.html`：表头加 7d/30d/90d 三列，渲染 ±%；empty 行 colspan 4→6
+- `templates/_base.html`：加 .diff/.bad/.good/.diff-na CSS（红字/绿字/灰色）
+- `tests/test_comparisons.py` 22 个新测试（_parse_iso 边界 / _nearest / lookback up&down / 0 past / 持平 / build_comparisons multi-lookback）
 
-- `templates/_base.html` 新建：共享 head/CSS/顶部 nav/chatbot 浮窗/`{% block content %}`
-- `templates/index.html` 重写继承 _base，从 394 行减到 ~110 行
-- `templates/indicator_detail.html` 新建：plotly 大图 + dl 元信息 + 面包屑
+测试：pytest **310 通过 / 0 失败 / 0 skip**（288 → 310，+22）
 
-### B. Plotly 大图（详情页）
+实测分布：8 个红字（恶化）+ 18 个绿字（改善）+ 1 个 N/A，HY OAS 7d -1.1% 绿色 ✅
 
-- 装 plotly 6.7.0（已在 requirements.txt 白名单）
-- `src/web/charts.py` 新建：`build_indicator_chart_html(name, label, dates, values, threshold_low, threshold_high, direction)`
-  - 主折线 + 末点蓝色高亮
-  - 阈值水平线 + 三档区域填色（up 顶 RED / down 顶 GREEN）
-  - 工具栏配置 zoom/pan/reset/导出 PNG，去 lasso/select
-  - `include_plotlyjs="cdn"` 详情页加载 plotly 3.5.0 CDN
+git：iter 40 230ade1 → iter 41 待 commit。
 
-### C. app.py 路由
+## 下一轮（iter 42）
 
-- 加 `/indicator/<name>` → 渲染 indicator_detail.html
-- 加 `_REGISTRY_BY_NAME: Dict[str, ind]` O(1) 索引
-- 拆 `_fetch_history_pairs` 返 `(dates, values)` 同时支持 sparkline 和详情页
-- 404 路径：未注册 name 走 `abort(404)`
+**5 年历史回填 + Z-score 列**：
 
-### D. 顶部导航条
+1. VIX 走 FRED:VIXCLS 替代 yahoo（避限速），重新加进 backfill TARGETS
+2. 跑一次 `backfill_history --years 5` 把 VIX 历史拉齐
+3. `src/web/zscore.py` 纯函数 `compute_zscore(values, today_value)` 返 (z, percentile)
+4. `_build_rows` 注入 z 字段
+5. 模板加 1 列 Z-score（绝对值 > 2 标 bad）
+6. 测试 + 文档同步 + push
 
-5 项：指标（current）+ 事件 / 热力图 / 时间线 / 对冲面（disabled grey 占位，后续 iter 47-51 实现）
-
-### E. Sparkline 可点击
-
-主 dashboard 每条 sparkline 包成 `<a href="/indicator/<name>" class="spark-link">` + `:hover` 提亮
-
-### F. 测试
-
-- `tests/test_charts.py` 10 个用例（占位 / 阈值线 / 方向 / 自定义 height）
-- `tests/test_indicator_detail_page.py` 11 个用例（200/404/breadcrumb/dl/plotly/source_url/nav）
-- pytest **288 通过 / 0 失败 / 0 skip**（267 → 288，+21）
-
-### G. 文档同步 6 条
-
-- INDICATORS.md：不动
-- DECISIONS.md：iter 40 完整 ADR
-- README.md：tests 数 197 → 288
-- HANDOFF.md：不动
-- THESIS.md：不动
-- PLAN.md：iter 40 标 [x]，路线图后置（同环比表 → iter 41，原 50 → 51）
-
-### H. 实测验证
-
-```
-curl http://127.0.0.1:5050/                   → HTTP 200，10 个 spark 链接
-curl http://127.0.0.1:5050/indicator/vix      → HTTP 200，含 plotly CDN script
-curl http://127.0.0.1:5050/indicator/hy_oas   → 36KB，含 786 个 plotly y 数据点（5 年历史）
-curl http://127.0.0.1:5050/indicator/none     → HTTP 404
-```
-
-git：iter 39 f5cf49f → iter 40 待 commit。
-
-## 下一轮（iter 41）
-
-**同比 / 环比对比表**（行内增强）：
-
-- 行里加 4 列：今日 / 上周 / 上月 / 上季度 + 4 列变化百分比
-- 数据：history_db.get_series_range 取那几个日期点的最近值
-- 颜色：恶化方向用红字（结合 direction 判断"恶化"是上升还是下降）
-- `src/web/comparisons.py` 新模块：纯函数 `lookback_summary(history, today, lookback_days)` 返 dict {value, pct_change, deteriorate}
-- 模板表格加列（6 列变 10 列，要重排版）
-- 测试：mock history 数据 + e2e dashboard 含同环比
-
-下一句"继续"将进 iter 41。
+下一句"继续"将进 iter 42。

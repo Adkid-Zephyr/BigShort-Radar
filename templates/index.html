@@ -49,6 +49,9 @@
               <th>当前值</th>
               <th>等级</th>
               <th>90 天</th>
+              <th>7d</th>
+              <th>30d</th>
+              <th>90d</th>
               <th>日期</th>
               <th>来源</th>
             </tr>
@@ -61,7 +64,7 @@
                   {{ r.label }}
                 </td>
                 {% if r.value is none %}
-                  <td class="empty" colspan="3">暂无数据，先跑 daily_fetch</td>
+                  <td class="empty" colspan="6">暂无数据，先跑 daily_fetch</td>
                   <td class="spark-cell">
                     <a href="/indicator/{{ r.name }}" class="spark-link" title="查看 {{ r.label }} 详情">{{ r.sparkline_svg | safe }}</a>
                   </td>
@@ -78,6 +81,17 @@
                   <td class="spark-cell">
                     <a href="/indicator/{{ r.name }}" class="spark-link" title="查看 {{ r.label }} 详情">{{ r.sparkline_svg | safe }}</a>
                   </td>
+                  {% for d in [7, 30, 90] %}
+                    {% set c = r.comparisons[d] %}
+                    {% if c and c.pct_change is not none %}
+                      <td class="diff{% if c.deteriorate %} bad{% elif c.deteriorate is false %} good{% endif %}">
+                        {%- if c.pct_change > 0 -%}+{% endif -%}
+                        {{ "%.1f"|format(c.pct_change) }}%
+                      </td>
+                    {% else %}
+                      <td class="diff diff-na">—</td>
+                    {% endif %}
+                  {% endfor %}
                   <td>{{ r.date }}</td>
                   <td>
                     {% if r.source_url %}

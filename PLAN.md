@@ -87,7 +87,7 @@
 - [x] (2026-05-17) iter 38：历史数据 cache DB 骨架（**akshare 已拍板方案 B：不引入**，仅用 FRED+YF）— 新建 `data/historical_cache.sqlite` + `src/store/history_db.py` + `src/fetch/history_fetcher.py` + `scripts/backfill_history.py`，47 个新测试覆盖 cache DB CRUD + fetcher 路由 + backfill 脚本派生识别
 - [x] (2026-05-17) iter 39：Sparkline 90 天微折线（首发异常监测视角）— `src/web/sparkline.py` 纯函数 SVG 渲染（折线 + 三档阈值带 + 末点高亮 + 数据不足"积累中"占位），`_INDICATOR_REGISTRY` 加 threshold/direction 元信息引用，`_build_rows` 注入 sparkline_svg，模板加"90 天"列。23 个新测试。8 条指标真实折线 + 2 条占位（VIX yahoo 限速 + SOFR-IORB 派生）
 - [x] (2026-05-17) iter 40：Sparkline 可点击 + 指标详情页 + base.html 多页架构 — `templates/_base.html`（继承基础 + 顶部 nav）/ `templates/indicator_detail.html`（plotly 大图 + 元信息 dl）/ `src/web/charts.py`（plotly CDN，三档填色 + 阈值线 + 末点高亮）/ `app.py` 加 `/indicator/<name>` 路由 + REGISTRY_BY_NAME + `_fetch_history_pairs`。21 个新测试。详情页加载 plotly 3.5.0 CDN，HY OAS 等 786 数据点 5 年大图可缩放/拖动/导出 PNG
-- [ ] iter 41：同比 / 环比对比表 — 行内列：今日 / 上周 / 上月 / 上季度 + 变化百分比
+- [x] (2026-05-17) iter 41：同比 / 环比对比表 — `src/web/comparisons.py` 纯函数 `build_comparisons` 返 7d/30d/90d 三个 lookback 的 {value, pct_change, abs_change, deteriorate}（按 direction 判定），`_build_rows` 注入 comparisons 字段，模板加 3 列（红字=恶化绿字=改善），22 个新测试
 - [ ] iter 42：5 年历史回填脚本跑一次 + Z-score 列 — 当前值在过去 5 年分布的位置（百分位）；VIX 改用 FRED:VIXCLS 替代 yahoo（避限速）
 - [ ] iter 43：加速度（5/20 天斜率）列 — 标"突然变陡"的指标
 - [ ] iter 44：政策反应维度 3 条 — WALCL（FRED:WALCL）/ ON RRP（FRED:RRPONTSYD）/ TGA（FRED:WTREGEN）
