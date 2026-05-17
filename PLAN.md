@@ -79,18 +79,46 @@
 - [x] (2026-05-17) ralph loop multimodal 自检（iter 34b）— `scripts/visual_check.sh` + `.ralph/visual_check_template.md` + loop_prompt §4.5。前端改动后跑 visual_check 截图，agent 用 Read 看图自检，写 `.ralph/visual_check_iter<N>.md`。chromium 浏览器需用户首次装（国内代理）
 - [x] (2026-05-17) 指标 source 列改成可点击官方页外链（iter 35）— `src/web/source_links.py` FRED/YF/OECD/CBOE 前缀映射 + registry `source_url` 字段优先，模板蓝色 anchor + ↗ 箭头 + 新页签
 - [x] (2026-05-17) empty 行（暂无数据）也保留 source 链接列展示（iter 36）— colspan=3 + 独立 source 列展示"查源"链接
+- [x] (2026-05-17) GitHub 公开化推送 + README/THESIS 双份脱敏（iter 36）— public 仓库 `Adkid-Zephyr/BigShort-Radar`、CC BY-NC 4.0、`THESIS_PUBLIC.md` 脱敏版、`git filter-branch` 重写历史扫净 `THESIS.md`
+- [x] (2026-05-17) README 文风重写为技术文档版（iter 37）— 去 emoji / 去营销词 / 一句话改事实陈述 / 17 个 H2 砍到合理结构 / 1500 字密度 / Roadmap 段写入 14 轮路线图
 
-### 高优先（直接服务 THESIS 核心）
+### 第二阶段路线图（iter 38–50，按用户 2026-05-17 拍板的"扩到 26 条 + 异常监测多视角 + 历史可视化"）
 
-- [ ] 历史回测框架（THESIS §6.1）— 2007-08 / 2019-20 / 2022 加息套规则反向跑，看温度计在崩盘前 N 周读数曲线，校准权重与切点
-- [ ] z-score / 历史分位替换三档跳变（THESIS §6.2）— 量化粒度从 3 档 → 连续分布
-- [ ] 加速度分量（THESIS §6.2）— 每条指标加"过去 N 天斜率"看变化方向
-- [ ] 维度间用乘法叠加（THESIS §6.2）— "同时翻红"应该放大风险，不是被绿灯稀释
-- [ ] 组合信号检测（THESIS §6.2）— 多指标同时翻黄/红是真正的危机预警
+- [ ] iter 38：历史数据 cache DB 骨架 + akshare 引入 ADR — 新建 `data/historical_cache.sqlite` + `src/store/history_db.py` + `src/fetch/history_fetcher.py` + `scripts/backfill_history.py`，akshare 加白名单走专门 ADR 评估
+- [ ] iter 39：Sparkline 90 天微折线（首发异常监测视角）— 每条指标右边加迷你折线 + 阈值带 SVG，纯前端，不引依赖
+- [ ] iter 40：同比 / 环比对比表 — 行内列：今日 / 上周 / 上月 / 上季度 + 变化百分比
+- [ ] iter 41：5 年历史回填脚本跑一次 + Z-score 列 — 当前值在过去 5 年分布的位置（百分位）
+- [ ] iter 42：加速度（5/20 天斜率）列 — 标"突然变陡"的指标
+- [ ] iter 43：政策反应维度 3 条 — WALCL（FRED:WALCL）/ ON RRP（FRED:RRPONTSYD）/ TGA（FRED:WTREGEN）
+- [ ] iter 44：波动率结构 2 条 — VVIX（YF:^VVIX）/ SKEW（YF:^SKEW 或 CBOE）
+- [ ] iter 45：FRA-OIS 代理（FRED 衍生：3M T-bill - SOFR）+ 中国维度骨架（akshare wrap）
+- [ ] iter 46：中国维度 6 条全部上线 — 中国外储 / 上证 PE / USDCNY 在岸 / 中国 10Y 国债 / USDCNH 离岸 / 北向资金月度多空，dashboard 加"中国"分组
+- [ ] iter 47：异常事件流（30 天倒序）— 新页面 `/events`，列出"翻档 / 突破阈值 / 同时多指标走阔"的事件
+- [ ] iter 48：组合信号告警规则 — 5 个崩盘剧本检测器（剧本 A 美元荒 / B 国债基差 / C 日本 carry / D AI 泡沫 / E 信用滞后崩 各一条规则）
+- [ ] iter 49：风险矩阵热力图 + 综合温度计 2 年时间线 — 新页面 `/heatmap` 与 `/timeline`
+- [ ] iter 50：政策对冲对比页（视角 I）+ 阈值校准面板（视角 J）— 风险面 vs 对冲面 / 历史读数 vs 当时市场表现
 
-### 融资市场维度补缺（THESIS §4.3，08 真正引爆器）
+**暂搁**（不在路线图，待评估）：
+- 美元互换基差（USD basis swap）— 无免费源
+- 国债基差交易杠杆（CFTC TFF 周报）— HTML 爬虫依赖暂停清单
+- 美国 TIC 数据 — 财政部 HTML 同上
+- 日本 30Y 国债 — FRED 无日值，OECD 月值且数据延迟
 
-- [ ] FRA-OIS 代理序列（USD3M T-bill - SOFR 或 GCF Repo - SOFR，待 ADR）
+**历史回测框架**（THESIS §6.1，原最高优先）后置到 iter 51+，理由：用户拍板先扩指标 + 异常监测，再做回测。回测仍在路线图上。
+
+### 历史归档（按 THESIS §6 排序，部分已被路线图覆盖）
+
+#### 高优先（直接服务 THESIS 核心）
+
+- [ ] 历史回测框架（THESIS §6.1）— 2007-08 / 2019-20 / 2022 加息套规则反向跑，看温度计在崩盘前 N 周读数曲线，校准权重与切点 — **路线图 iter 51+**
+- [ ] z-score / 历史分位替换三档跳变（THESIS §6.2）— 量化粒度从 3 档 → 连续分布 — **路线图 iter 41**
+- [ ] 加速度分量（THESIS §6.2）— 每条指标加"过去 N 天斜率"看变化方向 — **路线图 iter 42**
+- [ ] 维度间用乘法叠加（THESIS §6.2）— "同时翻红"应该放大风险，不是被绿灯稀释 — **路线图 iter 48 联动**
+- [ ] 组合信号检测（THESIS §6.2）— 多指标同时翻黄/红是真正的危机预警 — **路线图 iter 48**
+
+#### 融资市场维度补缺（THESIS §4.3，08 真正引爆器）
+
+- [ ] FRA-OIS 代理序列（USD3M T-bill - SOFR 或 GCF Repo - SOFR，待 ADR）— **路线图 iter 45**
 - [ ] 美元互换基差（USD basis swap）— 离岸美元短缺
 - [ ] 国债基差交易杠杆（CFTC TFF 周报）— IMF/BIS 警告但被低估
 
