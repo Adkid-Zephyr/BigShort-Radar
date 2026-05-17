@@ -43,6 +43,7 @@ from src.web.acceleration import compute_acceleration
 from src.web.charts import build_indicator_chart_html
 from src.web.comparisons import build_comparisons
 from src.web.events import detect_indicator_events, merge_events
+from src.web.hedge_calibration import calibrate_threshold, split_risk_vs_hedge
 from src.web.heatmap import build_heatmap_html, build_risk_timeline_html
 from src.web.scenarios import evaluate_scenarios
 from src.web.source_links import source_url as derive_source_url
@@ -698,6 +699,50 @@ def create_app(db_path=None, history_db_path=None) -> Flask:
             latest_risk=latest,
             point_count=len(history),
             active_page="timeline",
+        )
+
+    @app.route("/hedge")
+    def hedge():
+        """政策对冲对比页（视角 I）：风险面 vs 对冲面并排。"""
+        target = app.config["DB_PATH"]
+        hist_target = app.config.get("HISTORY_DB_PATH")
+        with dbmod.open_db(target) as conn:
+            rows = _build_rows(conn, history_db_path=hist_target)
+        split = split_risk_vs_hedge(rows)
+        return render_template(
+            "hedge.html",
+            risk_rows=split["risk"],
+            hedge_rows=split["hedge"],
+            active_page="hedge",
+        )
+
+    @app.route("/calibration")
+    def calibration():
+        """阈值校准面板（视角 J）：每条指标历史三档分布 + 过敏感/过迟钝判定。"""
+        target = app.config["DB_PATH"]
+        hist_target = app.config.get("HISTORY_DB_PATH")
+        results = []
+        with dbmod.open_db(target) as conn:
+            for ind in _INDICATOR_REGISTRY:
+                _, values = _fetch_history_pairs(
+                    conn, ind["name"], days=1825, history_db_path=hist_target
+                )
+                cal = calibrate_threshold(
+                    values=values,
+                    threshold_low=ind.get("threshold_low"),
+                    threshold_high=ind.get("threshold_high"),
+                    direction=ind.get("direction", "up"),
+                )
+                cal["name"] = ind["name"]
+                cal["label"] = ind["label"]
+                results.append(cal)
+        # 按 verdict 排序：too_sensitive 优先 → too_dull → ok → no_data
+        order = {"too_sensitive": 0, "too_dull": 1, "ok": 2, "no_data": 3}
+        results.sort(key=lambda c: order.get(c["verdict"], 4))
+        return render_template(
+            "calibration.html",
+            calibrations=results,
+            active_page="calibration",
         )
 
     @app.route("/healthz")

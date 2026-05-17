@@ -1,22 +1,31 @@
 # 上一轮总结
 
-迭代 50（2026-05-17）：风险矩阵热力图 + 综合温度计 2 年时间线（视角 D + E）。
+迭代 51（2026-05-17）：政策对冲对比页 + 阈值校准面板（视角 I + J）—— **路线图终点**。
 
 ## 本轮做了
 
-- src/web/heatmap.py:
-  - build_heatmap_html: 19 指标 × 90 天 × 3 档颜色 plotly Heatmap
-  - build_risk_timeline_html: 综合分 730 天走势 + 三档背景带 + 切点水平线
-- src/compute/risk_score.py: 加 get_risk_series(conn, days) 取风险分历史
-- 新页 /heatmap 与 /timeline，nav 两项激活
-- 10 个新测试，pytest 433 → 443
+- src/web/hedge_calibration.py:
+  - split_risk_vs_hedge: 按 group 切分风险面/对冲面
+  - calibrate_threshold: 三档占比 + 过敏感/过迟钝判定
+- 新页 /hedge（响应式双栏对比 + 路径化指标点击跳详情）
+- 新页 /calibration（按 verdict 排序，过敏感优先）
+- nav 5/5 全激活（指标/事件/热力图/时间线/对冲面/校准）
+- 15 个新测试，pytest 443 → 458
 
-git iter 49 2d4b9c9 → 50 待 commit
+git iter 50 43e0ac2 → 51 待 commit
 
-## 下一轮（iter 51）
-路线图最后一轮：政策对冲对比页 + 阈值校准面板（视角 I + J）。
-- /hedge：风险面（VIX/HY OAS）vs 对冲面（WALCL/ON RRP/TGA）并排对比
-- /calibration：每条指标历史读数 vs 当时市场表现（需要市场数据 SP500 等，简化版可只显示阈值历史触发率）
-- 测试 + push
+## 路线图终点
 
-下一句"继续"将进 iter 51（路线图终点）。
+iter 37-51 共 15 轮第二阶段全部完成：
+- 指标 10 → 19 条 / 维度 5 → 7（含政策 + 中国）
+- 新页 5 个（详情页/事件流/热力图/时间线/对冲面/校准）
+- 异常监测视角 10 个（A-J）全部上线
+- 测试 197 → 458（+261）
+- DECISIONS 追加 ADR 14 条
+
+## 后续（不在本轮）
+- 历史回测（THESIS §6.1，原最高优先，多次后置）
+- VVIX/SKEW Yahoo 限速等期满后回填
+- akshare 中国额外 3 条（用户决策方案 B 暂搁）
+
+下一句"继续"将开 iter 52，规划新方向。

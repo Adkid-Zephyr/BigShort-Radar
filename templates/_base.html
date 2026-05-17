@@ -297,6 +297,53 @@
     .scenario-hits { font-size: 11px; color: #f87171; margin-top: 6px; }
     .scenario-hits code { background: rgba(239,68,68,0.1); padding: 1px 4px; border-radius: 3px; font-family: 'SF Mono', monospace; font-size: 10px; }
 
+    /* 政策对冲对比 + 阈值校准 (iter 51) */
+    .hedge-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 1100px;
+    }
+    .hedge-col {
+      background: #11151a;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .hedge-col-head {
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1f2937;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .hedge-col-label { font-size: 13px; font-weight: 500; }
+    .hedge-col-sub { font-size: 11px; color: #6b7280; }
+    .hedge-row {
+      padding: 8px 0;
+      border-bottom: 1px solid #1f2937;
+    }
+    .hedge-row:last-child { border-bottom: 0; }
+    .hedge-row-head { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .hedge-row-level { font-size: 11px; margin-left: auto; }
+    .hedge-row-meta { font-size: 12px; color: #6b7280; padding-left: 18px; margin-top: 2px; }
+    .hedge-row-group { color: #9ca3af; }
+    .hedge-link { color: #e5e7eb; text-decoration: none; }
+    .hedge-link:hover { color: #60a5fa; }
+    @media (max-width: 800px) {
+      .hedge-grid { grid-template-columns: 1fr; }
+    }
+
+    .cal-verdict { font-size: 12px; white-space: nowrap; }
+    .cal-verdict-ok { color: #4ade80; }
+    .cal-verdict-too_sensitive { color: #f87171; font-weight: 500; }
+    .cal-verdict-too_dull { color: #eab308; }
+    .cal-verdict-no_data { color: #6b7280; }
+    .cal-reason { font-size: 11px; color: #9ca3af; }
+    tr.cal-too_sensitive td { background: rgba(239,68,68,0.04); }
+    tr.cal-too_dull td { background: rgba(234,179,8,0.04); }
+
     /* ── chatbot 浮窗 ─────────────────────────────────── */
     #chat-toggle {
       position: fixed; bottom: 24px; right: 24px;
@@ -369,7 +416,8 @@
     <a href="/events" class="{% if active_page == 'events' %}current{% endif %}">事件</a>
     <a href="/heatmap" class="{% if active_page == 'heatmap' %}current{% endif %}">热力图</a>
     <a href="/timeline" class="{% if active_page == 'timeline' %}current{% endif %}">时间线</a>
-    <a href="#" class="disabled">对冲面</a>
+    <a href="/hedge" class="{% if active_page == 'hedge' %}current{% endif %}">对冲面</a>
+    <a href="/calibration" class="{% if active_page == 'calibration' %}current{% endif %}">校准</a>
   </nav>
 
   {% block content %}{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "_base.html" %}
+
+{% block title %}政策对冲对比 · Finance Radar{% endblock %}
+
+{% block subtitle %}风险面 vs 对冲面 · THESIS §4.1 延迟工具箱盲区可视化（视角 I）{% endblock %}
+
+{% block content %}
+  <div class="breadcrumb">
+    <a href="/">← 返回 dashboard</a>
+  </div>
+
+  <div class="hedge-grid">
+    <div class="hedge-col hedge-risk">
+      <div class="hedge-col-head">
+        <span class="hedge-col-label">风险面</span>
+        <span class="hedge-col-sub">{{ risk_rows|length }} 条 · 越红越危险</span>
+      </div>
+      {% for r in risk_rows %}
+        <div class="hedge-row">
+          <div class="hedge-row-head">
+            <span class="dot" style="background: {{ r.color }};"></span>
+            <a class="hedge-link" href="/indicator/{{ r.name }}">{{ r.label }}</a>
+            <span class="hedge-row-level" style="color: {{ r.color }};">{{ r.level or '—' }}</span>
+          </div>
+          <div class="hedge-row-meta">
+            {% if r.value is not none %}{{ "%.2f"|format(r.value) }}{% else %}—{% endif %}
+            · <span class="hedge-row-group">{{ r.group }}</span>
+          </div>
+        </div>
+      {% else %}
+        <p class="empty">无数据</p>
+      {% endfor %}
+    </div>
+
+    <div class="hedge-col hedge-hedge">
+      <div class="hedge-col-head">
+        <span class="hedge-col-label">对冲面（政策反应）</span>
+        <span class="hedge-col-sub">{{ hedge_rows|length }} 条 · 央行/财政部弹药</span>
+      </div>
+      {% for r in hedge_rows %}
+        <div class="hedge-row">
+          <div class="hedge-row-head">
+            <span class="dot" style="background: {{ r.color }};"></span>
+            <a class="hedge-link" href="/indicator/{{ r.name }}">{{ r.label }}</a>
+            <span class="hedge-row-level" style="color: {{ r.color }};">{{ r.level or '—' }}</span>
+          </div>
+          <div class="hedge-row-meta">
+            {% if r.value is not none %}{{ "%.2f"|format(r.value) }}{% else %}—{% endif %}
+            · <span class="hedge-row-group">{{ r.group }}</span>
+          </div>
+        </div>
+      {% else %}
+        <p class="empty">无政策维度数据</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <p class="sub" style="max-width: 880px; margin-top: 24px;">
+    THESIS §4.1：危机延迟未被定价，"延迟工具箱"是反共识盲区。本页让你同步看：
+    左边是危险信号本身，右边是政策反应工具状态——比单看风险面信息量大。
+  </p>
+{% endblock %}

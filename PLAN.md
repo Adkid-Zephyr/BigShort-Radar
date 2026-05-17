@@ -97,7 +97,7 @@
 - [x] (2026-05-17) iter 48：异常事件流（视角 F）— `src/web/events.py` `detect_indicator_events` 检测三类事件（翻档 flip_up/down / 突破阈值 cross_low/high / 单日突变 spike）+ `merge_events` 倒序聚合。新页 `/events` + `templates/events.html` + nav "事件"激活。事件按 severity 分色（alert/warn/info）。18 个新测试，pytest 400 → 418
 - [x] (2026-05-17) iter 49：组合信号告警规则（5 剧本检测器，视角 G + THESIS §3.2 核心）— `src/web/scenarios.py` SCENARIOS 5 条规则定义（A 美元荒 / B 国债基差 / C 日本 carry / D AI 泡沫 / E 信用滞后崩），每条 3-4 个指标 + min_match 阈值。`evaluate_scenarios` 返 active/watch/quiet 三档。主 dashboard 顶部加剧本卡片网格（响应式，260px min-width 自适应），active 红边 / watch 黄边 / quiet 灰边，含触发指标列表。15 个新测试，pytest 418 → 433
 - [x] (2026-05-17) iter 50：风险矩阵热力图 + 综合温度计 2 年时间线（视角 D + E）— `src/web/heatmap.py` plotly 双函数（`build_heatmap_html` 19 指标×90 天×3 档颜色 / `build_risk_timeline_html` 综合分 730 天 + 三档背景带）。`risk_score.py` 加 `get_risk_series` 拉历史。新页 `/heatmap` 与 `/timeline`，nav 两项激活。10 个新测试，pytest 433 → 443
-- [ ] iter 51：政策对冲对比页（视角 I）+ 阈值校准面板（视角 J）— 风险面 vs 对冲面 / 历史读数 vs 当时市场表现
+- [x] (2026-05-17) iter 51：政策对冲对比页 + 阈值校准面板（视角 I + J）— `src/web/hedge_calibration.py` 双函数（`split_risk_vs_hedge` 按 group 切分 + `calibrate_threshold` 三档占比 + 过敏感/过迟钝判定）。新页 `/hedge`（响应式双栏对比）+ `/calibration`（按 verdict 排序的表格）。nav 5/5 全激活（新加"校准"项）。15 个新测试，pytest 443 → 458。**路线图终点**：iter 37-51 共 14 轮第二阶段全部完成
 
 **暂搁**（不在路线图，待评估）：
 - 美元互换基差（USD basis swap）— 无免费源

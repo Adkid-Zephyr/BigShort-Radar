@@ -1,0 +1,49 @@
+{% extends "_base.html" %}
+
+{% block title %}阈值校准面板 · Finance Radar{% endblock %}
+
+{% block subtitle %}每条指标过去 5 年三档分布 · 看阈值是否过敏感或过迟钝（视角 J）{% endblock %}
+
+{% block content %}
+  <div class="breadcrumb">
+    <a href="/">← 返回 dashboard</a>
+  </div>
+
+  <table style="max-width: 1100px;">
+    <thead>
+      <tr>
+        <th>指标</th>
+        <th>样本数</th>
+        <th>GREEN %</th>
+        <th>YELLOW %</th>
+        <th>RED %</th>
+        <th>判定</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in calibrations %}
+        <tr class="cal-{{ c.verdict }}">
+          <td><a class="source-link" href="/indicator/{{ c.name }}">{{ c.label }}</a></td>
+          <td class="value">{{ c.n_total }}</td>
+          <td class="value" style="color: #4ade80;">{{ "%.1f"|format(c.pct_green) }}%</td>
+          <td class="value" style="color: #eab308;">{{ "%.1f"|format(c.pct_yellow) }}%</td>
+          <td class="value" style="color: #ef4444;">{{ "%.1f"|format(c.pct_red) }}%</td>
+          <td class="cal-verdict cal-verdict-{{ c.verdict }}">
+            {%- if c.verdict == "ok" -%}✓ 合理
+            {%- elif c.verdict == "too_sensitive" -%}⚠ 过敏感
+            {%- elif c.verdict == "too_dull" -%}△ 过迟钝
+            {%- else -%}— 数据不足
+            {%- endif -%}
+          </td>
+          <td class="cal-reason">{{ c.verdict_reason }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="sub" style="max-width: 880px; margin-top: 24px;">
+    THESIS §6.9 失效条件：每隔 6 个月回看，阈值是否过敏感（频繁假警报）或过迟钝（错过真信号）。
+    标 ⚠ 的指标考虑收紧阈值；标 △ 的考虑放松。改阈值需走 DECISIONS.md ADR。
+  </p>
+{% endblock %}
