@@ -67,6 +67,8 @@
   - 跨市场：USDJPY、DXY 广义、日本 10Y
 - 综合温度计：五维加权（曲线 25 / 信用 25 / 跨市场 20 / 流动性 15 / 波动率 15）→ 0-100 分 / 三档
 - LLM：百炼 qwen3-coder-plus，每日简报 + dashboard chatbot 浮窗
+
+> **iter 56 实时基线（2026-05-17）**：pytest 492/0/0；19 条指标 / 7 维度（含中国 + 政策）；7 个 Web page 全活；前端 iter 55-56 两轮美化(信息驾驶舱方向 SVG 圆环 cockpit gauge + Bento 5 列 + 校准 stacked bar)。
 - launchd：每天北京 05:30 自动跑（已加载 `~/Library/LaunchAgents/com.financeradar.daily.plist`）
 - 当前下一项 PLAN：按 `THESIS.md` §6 列出的优先级走（历史回测 → 算法升级 → 融资市场维度补缺 → 政策反应维度新增）
 

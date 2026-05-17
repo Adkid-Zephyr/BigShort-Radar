@@ -13,22 +13,41 @@
     <thead>
       <tr>
         <th>指标</th>
-        <th>样本数</th>
-        <th>GREEN %</th>
-        <th>YELLOW %</th>
-        <th>RED %</th>
+        <th>样本</th>
+        <th>三档分布（GREEN / YELLOW / RED）</th>
         <th>判定</th>
         <th>说明</th>
       </tr>
     </thead>
     <tbody>
       {% for c in calibrations %}
+        {% set _has_data = c.n_total and c.n_total > 0 %}
         <tr class="cal-{{ c.verdict }}">
           <td><a class="source-link" href="/indicator/{{ c.name }}">{{ c.label }}</a></td>
           <td class="value">{{ c.n_total }}</td>
-          <td class="value" style="color: #4ade80;">{{ "%.1f"|format(c.pct_green) }}%</td>
-          <td class="value" style="color: #eab308;">{{ "%.1f"|format(c.pct_yellow) }}%</td>
-          <td class="value" style="color: #ef4444;">{{ "%.1f"|format(c.pct_red) }}%</td>
+          <td class="cal-bar-cell">
+            <div class="cal-bar" title="GREEN {{ '%.1f'|format(c.pct_green) }}% · YELLOW {{ '%.1f'|format(c.pct_yellow) }}% · RED {{ '%.1f'|format(c.pct_red) }}%">
+              {% if _has_data %}
+                {% if c.pct_green > 0 %}
+                  <div class="cal-bar-seg seg-green{% if c.pct_green >= 18 %} seg-wide{% endif %}" style="width: {{ '%.1f'|format(c.pct_green) }}%;" title="GREEN {{ '%.1f'|format(c.pct_green) }}%">
+                    <span class="cal-bar-seg-text">{{ "%.0f"|format(c.pct_green) }}%</span>
+                  </div>
+                {% endif %}
+                {% if c.pct_yellow > 0 %}
+                  <div class="cal-bar-seg seg-yellow{% if c.pct_yellow >= 18 %} seg-wide{% endif %}" style="width: {{ '%.1f'|format(c.pct_yellow) }}%;" title="YELLOW {{ '%.1f'|format(c.pct_yellow) }}%">
+                    <span class="cal-bar-seg-text">{{ "%.0f"|format(c.pct_yellow) }}%</span>
+                  </div>
+                {% endif %}
+                {% if c.pct_red > 0 %}
+                  <div class="cal-bar-seg seg-red{% if c.pct_red >= 18 %} seg-wide{% endif %}" style="width: {{ '%.1f'|format(c.pct_red) }}%;" title="RED {{ '%.1f'|format(c.pct_red) }}%">
+                    <span class="cal-bar-seg-text">{{ "%.0f"|format(c.pct_red) }}%</span>
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="cal-bar-seg seg-empty">缺数据</div>
+              {% endif %}
+            </div>
+          </td>
           <td class="cal-verdict cal-verdict-{{ c.verdict }}">
             {%- if c.verdict == "ok" -%}✓ 合理
             {%- elif c.verdict == "too_sensitive" -%}⚠ 过敏感

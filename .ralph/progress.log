@@ -23,3 +23,4 @@ iter 52 | 2026-05-17 23:55 | 431389b | tests 484/484 | 历史回测 src/backtest
 iter 53 | 2026-05-18 00:07 | 89b8a81 | tests 492/492 | 2022 加息熊市 RED 39 天 + 三窗口 SUMMARY.md（缺失模式定位 iter 55 校准）
 iter 54 | 2026-05-18 00:27 | 78a8646 | tests 492/492 | 2008 雷曼周回测（VIX 36 + TED 3 仍 YELLOW 32 因 missing）+ 三窗口 SUMMARY 完整
 iter 55 | 2026-05-18 00:38 | 77f51ce | tests 492/492 | 前端美化（taste-skill 深色精细 + Geist + Bento + plotly 同步）
+iter 56 | 2026-05-18 01:28 | 65579c4 | tests 492/492 | 前端二次美化（信息驾驶舱）：Bento 5 列单排 + 7 维度 2 列网格 + 表格密度提升 + SVG 圆环 cockpit gauge + 校准 stacked bar

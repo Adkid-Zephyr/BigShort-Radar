@@ -27,18 +27,48 @@
 
   {% if risk %}
     {% set risk_color = level_colors[risk.level] %}
+    {% set _arc_len = 396 %}
+    {% set _score_pct = risk.score / 100.0 if risk.score < 100 else 1.0 %}
+    {% set _score_pct = 0.0 if _score_pct < 0 else _score_pct %}
+    {% set _dashoffset = _arc_len * (1 - _score_pct) %}
     <div class="gauge">
-      <div class="gauge-num" style="color: {{ risk_color }};">{{ "%.0f"|format(risk.score) }}</div>
-      <div class="gauge-meta">
-        <span class="gauge-title">综合风险温度计 · {{ risk.date }}</span>
-        <span class="gauge-level" style="color: {{ risk_color }};">{{ risk.level }} ／ 总分 {{ "%.1f"|format(risk.score) }} / 100</span>
+      <div class="gauge-ring-wrap">
+        <svg class="gauge-ring-svg" viewBox="0 0 200 200" aria-hidden="true">
+          <!-- 背景 3/4 圆环（缺底部 90°） -->
+          <circle class="gauge-ring-bg" cx="100" cy="100" r="84"
+                  stroke-dasharray="{{ _arc_len }} 528" />
+          <!-- 进度环 -->
+          <circle class="gauge-ring-fg" cx="100" cy="100" r="84"
+                  stroke="{{ risk_color }}"
+                  stroke-dasharray="{{ _arc_len }} 528"
+                  stroke-dashoffset="{{ '%.1f'|format(_dashoffset) }}"
+                  style="color: {{ risk_color }};" />
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-num" style="color: {{ risk_color }};">{{ "%.0f"|format(risk.score) }}</div>
+          <div class="gauge-num-suffix">/ 100</div>
+          <div class="gauge-level-label" style="color: {{ risk_color }};">{{ risk.level }}</div>
+        </div>
+      </div>
+      <div>
+        <div class="gauge-cockpit-title">综合风险温度计 · 7 维加权</div>
         {% if risk.breakdown %}
-          <span class="gauge-bd">
-          {%- for g, info in risk.breakdown.items() -%}
-            {{ g }} {{ "%.0f"|format(info.score) }}（×{{ "%.0f"|format(info.weight) }}%）{% if not loop.last %} · {% endif %}
-          {%- endfor -%}
-          </span>
+          <div class="gauge-dims">
+            {% for g, info in risk.breakdown.items() %}
+              {% set _g_level = "RED" if info.score >= 65 else ("YELLOW" if info.score >= 25 else "GREEN") %}
+              {% set _g_color = level_colors[_g_level] %}
+              <div class="gauge-dim-row">
+                <span class="dot dot-sm" style="background: {{ _g_color }};"></span>
+                <span class="gauge-dim-name">{{ g }}</span>
+                <div class="gauge-dim-bar-wrap">
+                  <div class="gauge-dim-bar" style="width: {{ '%.0f'|format(info.score) }}%; background: {{ _g_color }};"></div>
+                </div>
+                <span class="gauge-dim-meta">{{ "%.0f"|format(info.score) }} ×{{ "%.0f"|format(info.weight) }}%</span>
+              </div>
+            {% endfor %}
+          </div>
         {% endif %}
+        <div class="gauge-date">{{ risk.date }}</div>
       </div>
     </div>
   {% endif %}
@@ -55,6 +85,7 @@
   {% endif %}
 
   {% if groups %}
+    <div class="indicator-grid">
     {% for g in groups %}
       <div class="group">
         <div class="group-header">
@@ -148,6 +179,7 @@
         </table>
       </div>
     {% endfor %}
+    </div>
   {% else %}
     <p class="empty">尚未注册任何指标</p>
   {% endif %}

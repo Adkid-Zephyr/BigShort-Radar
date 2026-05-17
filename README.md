@@ -219,6 +219,12 @@ tests/             484 用例
 完成后总指标 26 条 / 7 维度，dashboard 含 sparkline / Z-score / 加速度 / 事件流 / 热力图 / 时间线 / 对冲面 / 校准面板。
 路线图细节见 `PLAN.md` P3.6 段。
 
+**iter 51 完成路线图终点**：实际方案 B 决策不引 akshare,总指标定型 19 条 / 7 维度。
+
+**iter 52-54 历史回测**:跑通 2008 雷曼 / 2020 COVID / 2022 加息三窗口,关键发现"少数指标 RED 但综合分被稀释"模式 — 需要 iter 57 阈值校准修正。
+
+**iter 55-56 前端美化两轮**:iter 55 用 taste-skill 规范做深色精细化,iter 56 改信息驾驶舱方向(SVG 圆环 cockpit gauge + 7 维度径向条 + Bento 5 列单排 + 校准 stacked bar)。详见 `DECISIONS.md` iter 55-56。
+
 ## 技术栈
 
 - Python 3.9+
