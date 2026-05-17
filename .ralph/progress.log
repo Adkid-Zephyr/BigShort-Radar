@@ -2,3 +2,4 @@
 # 追加式，单行格式：iter N | YYYY-MM-DD HH:MM | <git HEAD short> | tests <passed/N> | <一句话总结>
 # 第 1-33 轮历史在 git log 与 DECISIONS.md 里，本文件从 iter 34 开始记录
 iter 34a | 2026-05-17 16:09 | bdef04a | tests 167/167 | ralph loop 脚手架（ralph_loop.sh + loop_prompt + progress.log）+ 文档同步
+iter 34b | 2026-05-17 16:33 | 5cb5f17 | tests 179/179 | visual_check.sh + template + loop_prompt §4.5 multimodal 自检（chromium 待用户首装）
