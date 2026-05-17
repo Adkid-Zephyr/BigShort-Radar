@@ -15,3 +15,4 @@ iter 43 | 2026-05-17 21:04 | a7c4d32 | tests 341/341 | 加速度 Δ 列（短 5d
 iter 44 | 2026-05-17 21:11 | ce87e3e | tests 362/362 | 政策维度 3 条 + 权重重平衡（ON RRP 真红字流动性预警）
 iter 45 | 2026-05-17 21:16 | cf481da | tests 375/375 | VVIX + SKEW 波动率结构（yahoo 限速 backfill 漏拉）
 iter 46 | 2026-05-17 22:09 | f39af4b | tests 400/400 | FRA-OIS 代理 + 中国 3 条（外储 USDCNY CNY10Y）+ 7 维度重平衡 + 综合分跨入 YELLOW
+iter 48 | 2026-05-17 22:12 | 8ca6fb8 | tests 418/418 | 异常事件流 /events 页（翻档+突破+突变三类）+ nav 事件激活
