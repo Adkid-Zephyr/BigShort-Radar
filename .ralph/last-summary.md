@@ -1,35 +1,28 @@
 # 上一轮总结
 
-迭代 46（2026-05-17）：FRA-OIS 代理 + 中国维度 3 条全部上线。
+迭代 48（2026-05-17）：异常事件流（首个新 page，视角 F）。
 
 ## 本轮做了
 
-### 4 个新 indicator 模块
-- fra_ois.py: FRED:DGS3MO - FRED:SOFR 派生，up，阈值 0.10/0.30 百分点
-- china_fx_reserves.py: FRED:TRESEGCNM052N down，阈值 3.0T/3.1T 美元
-- usdcny.py: FRED:DEXCHUS up，阈值 7.10/7.30
-- china_10y.py: FRED:IRLTLT01CNM156N down，阈值 2.0/2.5
+- src/web/events.py: detect_indicator_events 三类（翻档/突破/突变）+ merge_events 倒序
+- 新页 /events 路由 + templates/events.html
+- nav "事件"项激活（current 高亮 / disabled 灰色 → 蓝色可点击）
+- _base.html 加 event-alert/warn/info 分色 CSS + kind emoji 颜色
+- 18 个新测试
 
-### 注册同步
-- _INDICATOR_REGISTRY 加 4 条（FRA-OIS 入流动性，3 条入"中国"）
-- _GROUP_ORDER 加"中国"
-- daily_fetch FETCHERS / backfill TARGETS 同步
-- _GROUP_WEIGHTS 再平衡 → 7 维度（含中国 10%）
+测试：pytest 400 → 418
 
-### 测试 + 实测
-- 25 个新测试
-- pytest 400/400 通过（375 → 400）
-- backfill：USDCNY 1246 日值，china_fx_reserves 57 月值，china_10y FRED 空（月值数据偶有空缺）
-- daily_fetch 跑 19 个 fetcher 0 失败
-- **综合分 GREEN 20.83 → YELLOW 26.33**（中国维度纳入后切换）
+git iter 46 22a433b → 48 待 commit（iter 47 已并入 46）
 
-git iter 45 → 46 待 commit
-
-## 下一轮（iter 47/48）
-中国维度 3 条已合并到 iter 46。原 iter 47 占位用 [x] 标完成。
-直接进 iter 48：**异常事件流**（30 天倒序）：
-- 新页面 `/events`，扫近 30 天 history pairs 找"翻档 / 突破阈值 / 多指标同时走阔"事件
-- 模板继承 _base.html，nav 中"事件"项激活
+## 下一轮（iter 49）
+组合信号告警 + 5 剧本检测器：
+- src/web/scenarios.py：5 个崩盘剧本规则化
+  - A 美元荒：USDJPY 高 + DXY 高 + SOFR-IORB 高 + ON RRP 低 同时
+  - B 国债基差：SOFR 突变 + ...（暂无 CFTC 数据，简化条件）
+  - C 日本 carry: USDJPY 突破 + 日本 10Y 上升
+  - D AI 泡沫: VIX 期限结构 backwardation + VVIX 高（部分依赖未回填）
+  - E 信用滞后崩: HY OAS 走阔 + IG OAS 走阔 + 同步发生
+- 主 dashboard 顶部加 "活跃剧本" 横条
 - 测试
 
-下一句"继续"将进 iter 48。
+下一句"继续"将进 iter 49。

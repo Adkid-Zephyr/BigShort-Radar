@@ -1,0 +1,47 @@
+{% extends "_base.html" %}
+
+{% block title %}异常事件流 · Finance Radar{% endblock %}
+
+{% block subtitle %}近 30 天 翻档 / 突破阈值 / 单日突变 倒序{% endblock %}
+
+{% block content %}
+  <div class="breadcrumb">
+    <a href="/">← 返回 dashboard</a>
+  </div>
+
+  {% if events %}
+    <table style="max-width: 1100px;">
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>分组</th>
+          <th>指标</th>
+          <th>类型</th>
+          <th>事件</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+          <tr class="event event-{{ e.severity }}">
+            <td class="value">{{ e.date }}</td>
+            <td class="level">{{ e.group }}</td>
+            <td><a class="source-link" href="/indicator/{{ e.name }}">{{ e.label }}</a></td>
+            <td class="event-kind kind-{{ e.kind }}">
+              {%- if e.kind == "flip_up" -%}↗ 翻档恶化
+              {%- elif e.kind == "flip_down" -%}↘ 翻档改善
+              {%- elif e.kind == "cross_high" -%}⚠ 上穿 HIGH
+              {%- elif e.kind == "cross_low" -%}△ 上穿 LOW
+              {%- elif e.kind == "spike" -%}⚡ 单日突变
+              {%- else -%}{{ e.kind }}
+              {%- endif -%}
+            </td>
+            <td>{{ e.message }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="sub" style="max-width: 880px;">共 {{ events|length }} 条事件，按日期倒序。点击指标名进入详情页查看大图。</p>
+  {% else %}
+    <p class="empty" style="max-width: 880px;">近 30 天没检测到异常事件（或历史数据不足）。等下个 daily_fetch 累积。</p>
+  {% endif %}
+{% endblock %}

@@ -42,6 +42,7 @@ from src.utils.logger import get_logger
 from src.web.acceleration import compute_acceleration
 from src.web.charts import build_indicator_chart_html
 from src.web.comparisons import build_comparisons
+from src.web.events import detect_indicator_events, merge_events
 from src.web.source_links import source_url as derive_source_url
 from src.web.sparkline import build_sparkline_svg
 from src.web.zscore import compute_zscore
@@ -614,6 +615,35 @@ def create_app(db_path=None, history_db_path=None) -> Flask:
             point_count=len(spark_values),
             active_page="index",  # 详情页归入"指标"栏目
         )
+
+    @app.route("/events")
+    def events():
+        """异常事件流页（视角 F）：扫所有指标过去 30 天的翻档/突破/突变事件。"""
+        target = app.config["DB_PATH"]
+        hist_target = app.config.get("HISTORY_DB_PATH")
+        per_indicator = []
+        with dbmod.open_db(target) as conn:
+            for ind in _INDICATOR_REGISTRY:
+                # 取 60 天历史以保证 30 天窗口前面也有"前一日"做翻档对比
+                dates, values = _fetch_history_pairs(
+                    conn, ind["name"], days=60, history_db_path=hist_target
+                )
+                if len(values) < 2:
+                    continue
+                evs = detect_indicator_events(
+                    name=ind["name"],
+                    label=ind["label"],
+                    group=ind.get("group", "其他"),
+                    dates=dates,
+                    values=values,
+                    threshold_low=ind.get("threshold_low"),
+                    threshold_high=ind.get("threshold_high"),
+                    direction=ind.get("direction", "up"),
+                    lookback_days=30,
+                )
+                per_indicator.append(evs)
+        events = merge_events(per_indicator)
+        return render_template("events.html", events=events, active_page="events")
 
     @app.route("/healthz")
     def healthz():

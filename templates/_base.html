@@ -253,6 +253,16 @@
     }
     .breadcrumb a:hover { color: #fff; }
 
+    /* 事件流页 (iter 48) */
+    tr.event-alert td { background: rgba(239,68,68,0.07); }
+    tr.event-warn td { background: rgba(234,179,8,0.06); }
+    tr.event-info td { background: transparent; }
+    .event-kind { font-size: 12px; white-space: nowrap; }
+    .kind-flip_up, .kind-cross_high { color: #f87171; font-weight: 500; }
+    .kind-flip_down { color: #4ade80; }
+    .kind-cross_low { color: #fbbf24; }
+    .kind-spike { color: #93c5fd; }
+
     /* ── chatbot 浮窗 ─────────────────────────────────── */
     #chat-toggle {
       position: fixed; bottom: 24px; right: 24px;
@@ -322,7 +332,7 @@
 
   <nav class="page-nav">
     <a href="/" class="{% if active_page == 'index' %}current{% endif %}">指标</a>
-    <a href="#" class="disabled">事件</a>
+    <a href="/events" class="{% if active_page == 'events' %}current{% endif %}">事件</a>
     <a href="#" class="disabled">热力图</a>
     <a href="#" class="disabled">时间线</a>
     <a href="#" class="disabled">对冲面</a>

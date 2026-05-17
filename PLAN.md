@@ -94,7 +94,7 @@
 - [x] (2026-05-17) iter 45：波动率结构 2 条 — `src/compute/indicators/vvix.py`（YF:^VVIX up，阈值 90/120）+ `skew.py`（YF:^SKEW up，阈值 130/145）。注册到 _INDICATOR_REGISTRY 波动率组 + daily_fetch + backfill。13 个新测试，pytest 362 → 375。**已知**：Yahoo 限速 5 年 backfill 失败（与 VIX 同问题），等限速过 + 每天 daily_fetch 累积 / 后续 iter 改用 CBOE 直接源
 - [x] (2026-05-17) iter 46：FRA-OIS 代理 + 中国维度 3 条 — `fra_ois.py` (FRED:DGS3MO - FRED:SOFR 派生，up，阈值 0.10/0.30) 入流动性组；`china_fx_reserves.py` (FRED:TRESEGCNM052N down，阈值 3.0T/3.1T 美元) + `usdcny.py` (FRED:DEXCHUS up，阈值 7.10/7.30) + `china_10y.py` (FRED:IRLTLT01CNM156N down，阈值 2.0/2.5) 入"中国"组。`_GROUP_WEIGHTS` 再平衡（曲线/信用 22→20 / 流动性 13→14 / 波动率 13→12 / 跨市场 18→14 / 政策 12→10 / 中国 10）。25 个新测试，pytest 375 → 400。**实测**：USDCNY 1246 日值 + 外储 57 月值 backfill 成功；综合分 20.83 GREEN → 26.33 YELLOW（中国维度纳入显示风险）
 - [ ] iter 47：中国维度 3 条上线（已并入 iter 46 完成）
-- [ ] iter 48：异常事件流（30 天倒序）— 新页面 `/events`，列出"翻档 / 突破阈值 / 同时多指标走阔"的事件，用 base.html 与 nav
+- [x] (2026-05-17) iter 48：异常事件流（视角 F）— `src/web/events.py` `detect_indicator_events` 检测三类事件（翻档 flip_up/down / 突破阈值 cross_low/high / 单日突变 spike）+ `merge_events` 倒序聚合。新页 `/events` + `templates/events.html` + nav "事件"激活。事件按 severity 分色（alert/warn/info）。18 个新测试，pytest 400 → 418
 - [ ] iter 49：组合信号告警规则 — 5 个崩盘剧本检测器（剧本 A 美元荒 / B 国债基差 / C 日本 carry / D AI 泡沫 / E 信用滞后崩 各一条规则）
 - [ ] iter 50：风险矩阵热力图 + 综合温度计 2 年时间线 — 新页面 `/heatmap` 与 `/timeline`
 - [ ] iter 51：政策对冲对比页（视角 I）+ 阈值校准面板（视角 J）— 风险面 vs 对冲面 / 历史读数 vs 当时市场表现
