@@ -6,3 +6,4 @@ iter 34b | 2026-05-17 16:33 | 5cb5f17 | tests 179/179 | visual_check.sh + templa
 iter 35 | 2026-05-17 17:03 | aae7dd3 | tests 197/197 | 指标 source 列改可点击官方页外链（FRED/YF/OECD/CBOE 前缀 + registry source_url）
 iter 36 | 2026-05-17 17:39 | ac06ce3 | tests 197/197 | empty 行 source 链接 + GitHub 公开化（filter-branch + THESIS_PUBLIC + LICENSE + README 重写 + push）
 iter 37 | 2026-05-17 18:27 | c04960d | tests 197/197 | README 重写技术文档版（0 emoji / 0 营销词）+ PLAN 14 轮路线图 + DECISIONS ADR
+iter 38 | 2026-05-17 19:40 | 697af58 | tests 244/244 | 历史 cache DB 基础设施（history_db/fetcher/backfill_history + 47 测试）+ akshare 方案 B 不引入
