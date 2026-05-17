@@ -14,3 +14,4 @@ iter 42 | 2026-05-17 20:55 | e435a0e | tests 327/327 | Z-score 列（5 年分布
 iter 43 | 2026-05-17 21:04 | a7c4d32 | tests 341/341 | 加速度 Δ 列（短 5d / 长 20d 斜率 + 加速恶化判定）
 iter 44 | 2026-05-17 21:11 | ce87e3e | tests 362/362 | 政策维度 3 条 + 权重重平衡（ON RRP 真红字流动性预警）
 iter 45 | 2026-05-17 21:16 | cf481da | tests 375/375 | VVIX + SKEW 波动率结构（yahoo 限速 backfill 漏拉）
+iter 46 | 2026-05-17 22:09 | f39af4b | tests 400/400 | FRA-OIS 代理 + 中国 3 条（外储 USDCNY CNY10Y）+ 7 维度重平衡 + 综合分跨入 YELLOW
