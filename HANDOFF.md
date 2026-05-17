@@ -8,7 +8,7 @@
 ## 1. 30 秒上下文
 
 - **项目**：Finance Radar，本地金融风险监控系统，唯一作者：用户 lau
-- **根目录**：`/Users/lau/finance-radar/`
+- **根目录**：`<repo-root>`（作者本地 `/Users/lau/finance-radar/`，clone 后替换）
 - **第一原则**：`THESIS.md`（**必读**，项目投资论点 / 危机传导链 / 反共识结构性观察）
 - **工作宪法**：`PROMPT.md`（必读，工作循环 / 暂停清单 / 硬性约束 / 文档同步纪律）
 - **当前主线**：MVP 已收官（10 指标 / 5 维度 / 综合温度计 / LLM 简报 / chatbot / launchd），下一阶段重点是历史回测校准 + 算法升级（z-score / 加速度 / 组合信号）+ 融资市场维度补缺
@@ -31,8 +31,8 @@
 
 ## 3. 跑环境
 
-- venv：`/Users/lau/finance-radar/.venv/bin/python`
-- 跑测试：`cd /Users/lau/finance-radar && .venv/bin/python -m pytest -q`
+- venv：`<repo-root>/.venv/bin/python`
+- 跑测试：`cd <repo-root> && .venv/bin/python -m pytest -q`
 - 跑 daily fetch：`.venv/bin/python -m scripts.daily_fetch`
 - 起 Flask：`.venv/bin/python -m src.web.app`，浏览器打开 http://localhost:5050
 - 已装依赖（白名单内）：Flask、fredapi、pandas、pytest、python-dotenv、requests、yfinance

@@ -12,6 +12,9 @@ logs/*.err
 # Secrets
 .env
 
+# Private THESIS (含个人资产规模等敏感原文，公开版见 THESIS_PUBLIC.md)
+THESIS.md
+
 # Python
 __pycache__/
 *.pyc

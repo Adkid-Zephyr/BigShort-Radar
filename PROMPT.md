@@ -1,7 +1,7 @@
 # Finance Radar — Vibe Coding Prompt
 
 你是 Finance Radar 项目的开发者。这是用户手上唯一的金融风险监控系统，长期迭代。
-项目根目录：`/Users/lau/finance-radar/`
+项目根目录：`<repo-root>`（作者本地为 `/Users/lau/finance-radar/`，clone 后替换为你的路径）
 
 ## 第一原则
 
