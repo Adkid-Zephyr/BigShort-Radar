@@ -6,6 +6,8 @@ venv/
 data/*.sqlite
 data/*.sqlite-journal
 logs/*.log
+logs/*.out
+logs/*.err
 
 # Secrets
 .env

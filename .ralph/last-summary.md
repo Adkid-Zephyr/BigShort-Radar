@@ -1,28 +1,40 @@
 # 上一轮总结
 
-迭代 30-32（2026-05-15 自治）：MVP 收官 — chatbot + launchd + README 全部到位。
+迭代 33（2026-05-17）：[THESIS] 投资论点文档化 — 项目从"MVP 收官"转向"科学校准"阶段。
 
 本轮做了：
-- iter 30：/api/chat POST + 浮窗 UI（chat-toggle 按钮 + chat-panel + 流式 history）。系统 prompt 注入当前指标快照。LLM 真打成功（"日本10年期国债收益率最危险，因其处于红色警戒2.345%"）。pytest 167，commit 7f98bc9
-- iter 31：launchd plist + install_launchd.sh（install/uninstall/status/runonce 4 子命令）。北京 05:30 触发，已加载并验证 launchctl list 出现 com.financeradar.daily
-- iter 32：README 全面重写 — 启动指南、launchd 安装、双 API key 申请教程、10 指标维度阈值一览表、综合温度计算法、接力开发约定
+- 新建 `THESIS.md` 第一原则文档（基于用户与 Opus 2026-05-14 对话稿沉淀）：
+  - 用户初始命题（"一年内危机、做空一波财富自由"）
+  - 论点演化（被驳斥后的修正：穿越周期+尾部赚一笔 vs 赌一波）
+  - Universa 路线 vs Burry 路线对比
+  - 5 个候选崩盘剧本（美元荒 / 国债基差爆 / 日本 carry / AI 泡沫 / 信用估值滞后崩）
+  - 5 个反共识结构性观察（危机延迟未被定价 / 散户对赌波动率卖方 / 08 真正引爆器在融资市场 / 中日美三角联动 / 活得够久才是赢）
+  - §6 缺失内容按"对崩盘监控价值"排序的 9 类清单
+  - §7 维护纪律（每次改要走 ADR + 同步 PROMPT/HANDOFF/README/PLAN/INDICATORS 5 个下游 md）
 
-测试：167 通过 / 0 失败。
+- 同步更新（用户特别要求 md 同步）：
+  - `PROMPT.md`：加"第一原则"段 + "文档同步纪律" 6 条检查清单（每轮代码后强制过）
+  - `HANDOFF.md`：必读清单 THESIS 排第 1，§5 现状基线刷新到 iter 33，§4 加 LLM 失败降级约定
+  - `README.md`：顶部加 THESIS 引用 + 项目文件导览第 1 行
+  - `PLAN.md`：加优先级原则段，重排 P3，新增 P3.6（用户 5/17 反馈后真实优先级，按 THESIS §6 排序的 9 类清单）
+  - `DECISIONS.md`：追加 2026-05-17 iter 33 ADR
 
-git：iter 29 5c27543 → iter 30 7f98bc9 → iter 31+32 待 commit。
+测试：pytest 167 通过 / 0 失败 / 0 skip（纯文档变更，未动代码）。
 
-**MVP 标准达成**：
-- ✅ 10 指标 / 5 维度 / 综合温度计 0-100
-- ✅ LLM 风险简报 + chatbot 对话
-- ✅ launchd 每日自动跑
-- ✅ Dashboard localhost:5050 视觉完整
-- ✅ README 完整可独立启动
-- ✅ git 历史无密钥泄露（.env 严格 .gitignore）
+git：iter 32 b2a3f88 → iter 33 待 commit。
 
-下一步候选：
-- **iter 33：GitHub 推送**（用户 14:18 提的需求；准备好的待办：建仓库、推 main、写仓库描述、加 LICENSE）
-- iter 34：失败重试 + 日志轮转（P4 #2）
-- iter 35：sparkline（P3 #4，每条指标 90 天小图）
-- iter 36：历史回测（P3 #5，2008/2020 套规则验证）
+下一项 PLAN（按 THESIS §6 优先级）：
+- **iter 34：历史回测框架**（最高优先，THESIS §6.1）
+  - 加载 2007-2008、2019-2020、2022 加息真实数据
+  - 用当前阈值反向跑温度计
+  - 看温度计在崩盘前 N 周的读数曲线
+  - 校准权重与三档切点
+  - 不做这一步，所有阈值都是"我拍的"
 
-按用户授权"按计划做下去"，下一句"继续"将进 iter 33 GitHub 准备。
+候选下一步备选：
+- iter 35：z-score / 历史分位替换三档跳变（THESIS §6.2）
+- iter 36：加速度分量（过去 N 天斜率）
+- iter 37：维度间乘法叠加 + 组合信号检测
+- iter 38：融资市场维度补缺（FRA-OIS / USD basis swap / 国债基差杠杆）
+
+按用户授权"按 THESIS 优先级一步步完善"，下一句"继续"将进 iter 34。

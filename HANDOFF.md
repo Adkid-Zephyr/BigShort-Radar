@@ -7,23 +7,25 @@
 
 ## 1. 30 秒上下文
 
-- **项目**：Finance Radar，本地金融风险监控 MVP，唯一作者：用户 lau
+- **项目**：Finance Radar，本地金融风险监控系统，唯一作者：用户 lau
 - **根目录**：`/Users/lau/finance-radar/`
-- **工作宪法**：`PROMPT.md`（必读，规定每轮做什么、暂停清单、硬性约束）
-- **当前主线**：P0 已收官（VIX 上线 + Flask 渲染绿灯），正在做 P1 的 FRED 系列指标
+- **第一原则**：`THESIS.md`（**必读**，项目投资论点 / 危机传导链 / 反共识结构性观察）
+- **工作宪法**：`PROMPT.md`（必读，工作循环 / 暂停清单 / 硬性约束 / 文档同步纪律）
+- **当前主线**：MVP 已收官（10 指标 / 5 维度 / 综合温度计 / LLM 简报 / chatbot / launchd），下一阶段重点是历史回测校准 + 算法升级（z-score / 加速度 / 组合信号）+ 融资市场维度补缺
 - **唯一驱动指令**：用户说"继续"或"go"→ 跑下一轮迭代
 
 ## 2. 必读文件清单（按顺序）
 
 | 顺序 | 文件 | 看什么 |
 |---|---|---|
-| 1 | `PROMPT.md` | 工作循环 5 步、必须暂停清单、硬性约束 |
-| 2 | `PLAN.md` | 找最上面一个 `[ ]` 未完成项，那就是本轮任务 |
-| 3 | `.ralph/last-summary.md` | 上一轮做了什么、留下什么、建议下一轮做什么 |
-| 4 | `.ralph/iteration.txt` | 当前迭代号（做完 +1） |
-| 5 | `DECISIONS.md` | 项目历史选型与原则；关键如"重复三次再抽象"、阈值边界规则 |
-| 6 | `INDICATORS.md` | 指标定义、阈值、翻译卡（翻译卡只能用户手写，模型不能编造） |
-| 7 | `ARCHITECTURE.md` | 模块边界与数据流（fetch/store/compute/web/utils） |
+| 1 | `THESIS.md` | **第一原则**——投资论点、危机传导链、反共识观察。所有工作为它服务 |
+| 2 | `PROMPT.md` | 工作循环 5 步、必须暂停清单、硬性约束、**文档同步纪律** |
+| 3 | `PLAN.md` | 找最上面一个 `[ ]` 未完成项，那就是本轮任务 |
+| 4 | `.ralph/last-summary.md` | 上一轮做了什么、留下什么、建议下一轮做什么 |
+| 5 | `.ralph/iteration.txt` | 当前迭代号（做完 +1） |
+| 6 | `DECISIONS.md` | 项目历史选型与原则；ADR 风格 |
+| 7 | `INDICATORS.md` | 指标定义、阈值、翻译卡（翻译卡只能用户手写，模型不能编造） |
+| 8 | `ARCHITECTURE.md` | 模块边界与数据流（fetch/store/compute/web/utils） |
 
 如果存在 `BLOCKED.md` → **立即停下**，回报"被 BLOCKED.md 阻塞"，不要前进。
 
@@ -35,38 +37,53 @@
 - 起 Flask：`.venv/bin/python -m src.web.app`，浏览器打开 http://localhost:5050
 - 已装依赖（白名单内）：Flask、fredapi、pandas、pytest、python-dotenv、requests、yfinance
 - 还没装的白名单依赖：plotly（用到再 pip）
+- LLM：阿里百炼 Coding Plan（`qwen3-coder-plus`），key 在 `.env`，不进 git
 
 ## 4. 关键约定（高频踩坑点）
 
-- **暂停清单 8 条**（PROMPT.md §"必须暂停清单"）：碰到任何一条 → 写 `BLOCKED.md` 停。最常见的是"引入白名单外依赖"。
-- **每轮一件事**：PLAN.md 顶上一个 `[ ]`。粒度过大就先拆 `[ ]` 写回 PLAN.md，本轮只做拆出来的第一个。
-- **重复三次再抽象**（DECISIONS.md 2026-05-15 条）：vix.py 那个"遍历 series + 写库"循环，到第三个 FRED 指标时再抽 store helper，不要预判抽象。
+- **THESIS 优先**：所有改动先回头确认对应论点章节。THESIS 与 PROMPT/PLAN 冲突时以 THESIS 为准
+- **文档同步纪律**：每轮代码改完后，主动过一遍 PROMPT §3 的 6 条检查清单——不要等用户提醒
+- **暂停清单 8 条**（PROMPT.md §"必须暂停清单"）：碰到任何一条 → 写 `BLOCKED.md` 停。最常见的是"引入白名单外依赖"
+- **每轮一件事**：PLAN.md 顶上一个 `[ ]`。粒度过大就先拆 `[ ]` 写回 PLAN.md，本轮只做拆出来的第一个
+- **重复三次再抽象**（DECISIONS.md 2026-05-15 条）：避免预判抽象，等真实重复出现 3 次再抽 helper
 - **阈值边界规则**（DECISIONS.md）：
   - up 方向：`v == low` → GREEN；`v == high` → YELLOW；`v > high` 才 RED
   - down 方向：`v == high` → GREEN；`v == low` → YELLOW；`v < low` 才 RED
 - **时间约定**：UTC 入库，展示转东八区
-- **时间戳**：`ingested_at` 用 `_utc_now_iso()`（db.py 里有），不要自己拼
 - **失败处理**：所有外部调用 try/except，写日志，返回 None 或 0，不要让程序崩
 - **测试**：每个 src 模块至少一个测试；mock 外部库，不打真实网络
 - **翻译卡**：INDICATORS.md 里"翻译卡"段只能用户手写。模型只填到"待用户补"
+- **LLM 失败优雅降级**：daily_fetch 主流程不依赖 LLM，LLM 不可用时简报跳过，指标照常入库
 
-## 5. 现状基线（截至 2026-05-15）
+## 5. 现状基线（截至 2026-05-17 iter 33）
 
-- 18 个 commit 全在 main，工作树 clean
-- pytest 65 通过 / 0 失败 / 0 skip
-- 已实现指标：VIX（yfinance: ^VIX）342 条真实数据已入库
-- FRED key 已写 `.env`（已 .gitignore），fred_client.py 真打网络验证 T10Y2Y=0.48 成功
-- 下一项 PLAN 顶上的 `[ ]`：`src/compute/indicators/yield_curve.py`：10Y-2Y（FRED: T10Y2Y）
-- yield_curve_10y2y 阈值（INDICATORS.md 已写好）：GREEN >0.5 / YELLOW 0–0.5 / RED <0，方向 down
+- 34 commits（含 iter 33 THESIS 落地），main 分支唯一，工作树 clean
+- pytest 167 通过 / 0 失败 / 0 skip
+- 已实现指标（10 条 / 5 维度）：
+  - 波动率：VIX、VIX 期限结构（VIX/VIX3M）
+  - 曲线：10Y-2Y、10Y-3M
+  - 信用：HY OAS、IG OAS
+  - 流动性：SOFR-IORB
+  - 跨市场：USDJPY、DXY 广义、日本 10Y
+- 综合温度计：五维加权（曲线 25 / 信用 25 / 跨市场 20 / 流动性 15 / 波动率 15）→ 0-100 分 / 三档
+- LLM：百炼 qwen3-coder-plus，每日简报 + dashboard chatbot 浮窗
+- launchd：每天北京 05:30 自动跑（已加载 `~/Library/LaunchAgents/com.financeradar.daily.plist`）
+- 当前下一项 PLAN：按 `THESIS.md` §6 列出的优先级走（历史回测 → 算法升级 → 融资市场维度补缺 → 政策反应维度新增）
 
 ## 6. 留痕规范（每轮收尾必做）
 
 每轮完成后按这个顺序留痕，缺一不可：
 
 1. **代码**：写代码 + 写测试 + `pytest -q` 必须全过
-2. **PLAN.md**：把本轮的 `[ ]` 改成 `[x] (YYYY-MM-DD)`
-3. **INDICATORS.md / DECISIONS.md**：有指标改动 / 选型改动就同步 append
-4. **`.ralph/last-summary.md`**：覆盖写本轮做了什么 + 下一轮建议（不追加，覆盖）
+2. **文档同步检查**（按 PROMPT §3 的 6 条逐条过）：
+   - INDICATORS.md（指标改动）
+   - DECISIONS.md（架构/选型/废弃决策）
+   - README.md（功能/启动/API key）
+   - HANDOFF.md（接力流程/必读）
+   - THESIS.md（论点/愿景/优先级 → 同时 ADR）
+   - PLAN.md（任务列表）
+3. **PLAN.md**：把本轮的 `[ ]` 改成 `[x] (YYYY-MM-DD)`
+4. **`.ralph/last-summary.md`**：覆盖写本轮做了什么 + 下一轮建议
 5. **`.ralph/iteration.txt`**：写新迭代号
 6. **git**：`git add -A && git commit -m "iter N: <一句话>"`
 7. **回报用户**：5–10 行总结，包括本轮做了什么、测试通过情况、下一轮顶上是什么
@@ -87,7 +104,8 @@
 
 ## 8. 给下一个接手的 agent 的话
 
-不要重新开会问用户"项目背景是什么"。读 §2 的 7 个文件，5 分钟你就掌握全貌。
+不要重新开会问用户"项目背景是什么"。读 §2 的 8 个文件（**THESIS 第一**），5 分钟你就掌握全貌。
 不要重写已有模块；不要为了"更优雅"擅自重构（重构是单独一轮迭代）。
 不要编造翻译卡。不要在没用户拍板时做决策项。
+**不要等用户提醒文档同步——这是基本职业素养，不是额外工作**。
 报错直接讲。中文回复。
