@@ -25,6 +25,7 @@ __pycache__/
 .ralph/iteration.txt
 .ralph/loop_runs.log
 .ralph/visual_check_iter*/
+.ralph/.token
 .playwright-cli/
 
 # Backtest outputs (iter 52+)
