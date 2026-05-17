@@ -20,6 +20,7 @@ __pycache__/
 
 # Ralph runtime
 .ralph/iteration.txt
+.ralph/loop_runs.log
 
 # OS
 .DS_Store

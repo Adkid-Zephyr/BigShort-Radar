@@ -109,3 +109,19 @@
 不要编造翻译卡。不要在没用户拍板时做决策项。
 **不要等用户提醒文档同步——这是基本职业素养，不是额外工作**。
 报错直接讲。中文回复。
+
+## 9. 自动 loop 模式（ralph loop）
+
+iter 34 起项目支持 `scripts/ralph_loop.sh` 自动连续跑 N 轮：
+
+```bash
+bash scripts/ralph_loop.sh 10
+```
+
+每轮启动全新 codebuddy 进程，喂入 `.ralph/loop_prompt.md`。脚本兜底校验：
+- BLOCKED.md 存在 → 停
+- pytest 红 → 写 BLOCKED 停
+- iteration.txt 没 +1 → 停
+
+完整说明见 `PROMPT.md` §"自动 loop 模式"。
+跨轮单行进度记录在 `.ralph/progress.log`（追加式，不要覆盖写）。

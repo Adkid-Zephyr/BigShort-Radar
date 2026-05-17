@@ -1,40 +1,35 @@
 # 上一轮总结
 
-迭代 33（2026-05-17）：[THESIS] 投资论点文档化 — 项目从"MVP 收官"转向"科学校准"阶段。
+迭代 34a（2026-05-17）：ralph loop 自动迭代脚手架落地。
 
 本轮做了：
-- 新建 `THESIS.md` 第一原则文档（基于用户与 Opus 2026-05-14 对话稿沉淀）：
-  - 用户初始命题（"一年内危机、做空一波财富自由"）
-  - 论点演化（被驳斥后的修正：穿越周期+尾部赚一笔 vs 赌一波）
-  - Universa 路线 vs Burry 路线对比
-  - 5 个候选崩盘剧本（美元荒 / 国债基差爆 / 日本 carry / AI 泡沫 / 信用估值滞后崩）
-  - 5 个反共识结构性观察（危机延迟未被定价 / 散户对赌波动率卖方 / 08 真正引爆器在融资市场 / 中日美三角联动 / 活得够久才是赢）
-  - §6 缺失内容按"对崩盘监控价值"排序的 9 类清单
-  - §7 维护纪律（每次改要走 ADR + 同步 PROMPT/HANDOFF/README/PLAN/INDICATORS 5 个下游 md）
 
-- 同步更新（用户特别要求 md 同步）：
-  - `PROMPT.md`：加"第一原则"段 + "文档同步纪律" 6 条检查清单（每轮代码后强制过）
-  - `HANDOFF.md`：必读清单 THESIS 排第 1，§5 现状基线刷新到 iter 33，§4 加 LLM 失败降级约定
-  - `README.md`：顶部加 THESIS 引用 + 项目文件导览第 1 行
-  - `PLAN.md`：加优先级原则段，重排 P3，新增 P3.6（用户 5/17 反馈后真实优先级，按 THESIS §6 排序的 9 类清单）
-  - `DECISIONS.md`：追加 2026-05-17 iter 33 ADR
+- 新建 `scripts/ralph_loop.sh`（bash，可执行）：
+  - 参数 `max_iter`（默认 10）+ `--dry-run`
+  - 每轮启 `codebuddy -p --max-turns 80 -y`，stdin 喂 `.ralph/loop_prompt.md`
+  - 兜底 3 道防线：BLOCKED.md 存在停 / pytest 红写 BLOCKED 停 / iteration.txt 没 +1 停
+  - 全英文日志（避开 macOS bash 3.2 中文紧贴变量的解析坑）
+  - dry-run 联调通过：脚本骨架 OK
+- 新建 `.ralph/loop_prompt.md`：单轮 prompt 模板，固化"必读 8 文件顺序 + 暂停清单 + 文档同步 6 条 + 输出协议 LOOP_OK/LOOP_BLOCKED/LOOP_FAIL"
+- 新建 `.ralph/progress.log`：追加式单行历史（互补 last-summary.md 的覆盖式），对应 ralph 原版的 progress.txt
+- 文档同步：
+  - `PROMPT.md` 加 §"自动 loop 模式"段（用法 / 机制 / 与 ralph 原版差异 / 风险）
+  - `HANDOFF.md` 加 §9 ralph loop 简介
+  - `PLAN.md` P3.6 加"工程化基础设施"小节，34a 标 [x]，34b multimodal 自检挂入 [ ]
+  - `DECISIONS.md` 追加 iter 34a ADR
 
-测试：pytest 167 通过 / 0 失败 / 0 skip（纯文档变更，未动代码）。
+测试：pytest 167 通过 / 0 失败 / 0 skip（纯新增脚本+文档，未动指标代码）。
 
-git：iter 32 b2a3f88 → iter 33 待 commit。
+git：iter 33 e9b3687 → iter 34a 待 commit。
 
-下一项 PLAN（按 THESIS §6 优先级）：
-- **iter 34：历史回测框架**（最高优先，THESIS §6.1）
-  - 加载 2007-2008、2019-2020、2022 加息真实数据
-  - 用当前阈值反向跑温度计
-  - 看温度计在崩盘前 N 周的读数曲线
-  - 校准权重与三档切点
-  - 不做这一步，所有阈值都是"我拍的"
+下一项 PLAN（按用户 2026-05-17 锁定的优先级）：
 
-候选下一步备选：
-- iter 35：z-score / 历史分位替换三档跳变（THESIS §6.2）
-- iter 36：加速度分量（过去 N 天斜率）
-- iter 37：维度间乘法叠加 + 组合信号检测
-- iter 38：融资市场维度补缺（FRA-OIS / USD basis swap / 国债基差杠杆）
+- **iter 34b：ralph loop multimodal 自检**
+  - dashboard 改动后，agent 调 playwright-cli skill 截图本地 :5050
+  - 用 Read 工具读截图 → multimodal 看图判断 UI 是否符合预期
+  - 把判断结果写 `.ralph/visual_check_<iter>.md`
+  - 这一步是"防止 agent 写完代码自吹自擂"的最后一道防线
+  - 注意：playwright-cli 是 codebuddy plugin skill，不是依赖（不触发暂停清单）
+- 之后 iter 35 起开历史回测框架（THESIS §6.1）
 
-按用户授权"按 THESIS 优先级一步步完善"，下一句"继续"将进 iter 34。
+按用户授权"先做工程基础设施，再开科学校准"。下一句"继续"将进 iter 34b。

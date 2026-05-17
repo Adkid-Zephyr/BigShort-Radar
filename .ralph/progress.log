@@ -1,0 +1,4 @@
+# Finance Radar — Ralph Loop progress log
+# 追加式，单行格式：iter N | YYYY-MM-DD HH:MM | <git HEAD short> | tests <passed/N> | <一句话总结>
+# 第 1-33 轮历史在 git log 与 DECISIONS.md 里，本文件从 iter 34 开始记录
+iter 34a | 2026-05-17 16:09 | bdef04a | tests 167/167 | ralph loop 脚手架（ralph_loop.sh + loop_prompt + progress.log）+ 文档同步

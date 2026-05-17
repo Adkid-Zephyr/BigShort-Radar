@@ -73,6 +73,11 @@
 > 用户认为：当前三档加权"不客观、不管用"，前端不直观，且 THESIS 之前缺失。
 > 这是项目从"MVP 收官"进入"科学校准"阶段的真实清单。
 
+### 工程化基础设施
+
+- [x] (2026-05-17) ralph loop 脚手架（iter 34a）— `scripts/ralph_loop.sh` + `.ralph/loop_prompt.md` + `.ralph/progress.log`，支持自动连续跑 N 轮，兜底 pytest/BLOCKED/iter 校验
+- [ ] ralph loop multimodal 自检（iter 34b）— dashboard 改动后调 playwright-cli 截图 → Read 截图 → agent 自己看图判断 UI 正确性，写 `.ralph/visual_check_<iter>.md`
+
 ### 高优先（直接服务 THESIS 核心）
 
 - [ ] 历史回测框架（THESIS §6.1）— 2007-08 / 2019-20 / 2022 加息套规则反向跑，看温度计在崩盘前 N 周读数曲线，校准权重与切点
