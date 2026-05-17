@@ -10,3 +10,4 @@ iter 38 | 2026-05-17 19:40 | 697af58 | tests 244/244 | 历史 cache DB 基础设
 iter 39 | 2026-05-17 20:04 | 825dec3 | tests 267/267 | Sparkline 90 天微折线（SVG + 阈值带 + 末点高亮 + 占位）+ 8 真实/2 占位
 iter 40 | 2026-05-17 20:29 | 1b8e02b | tests 288/288 | Sparkline 可点击 + /indicator/<name> plotly 大图 + base.html + 顶部 nav 多页架构
 iter 41 | 2026-05-17 20:43 | b5da887 | tests 310/310 | 同环比对比 7d/30d/90d 列 + 红绿恶化标识
+iter 42 | 2026-05-17 20:55 | e435a0e | tests 327/327 | Z-score 列（5 年分布 + 极端方向判定 + hover 百分位）
