@@ -28,6 +28,7 @@ from src.compute.thresholds import Level
 from src.store import db as dbmod
 from src.utils.config import load_settings
 from src.utils.logger import get_logger
+from src.web.source_links import source_url as derive_source_url
 
 log = get_logger(__name__)
 
@@ -39,6 +40,10 @@ _TEMPLATE_DIR = _PROJECT_ROOT / "templates"
 # ── 指标注册表 ────────────────────────────────────────────────
 # 加一个新指标，只需在这里加一行（含 group 字段做分组）
 # group 取值约定：曲线 / 信用 / 流动性 / 波动率 / 估值（待加）
+#
+# source_url：可选。指标"数据源"对应的官方页面 URL（点击 source 列跳转用）。
+# 大多数指标可由 src/web/source_links.py 从 source 字符串自动推导（FRED:/YF: 等）；
+# 派生指标（多源比值/差值，如 VIX 期限结构）需在这里手填权威页 URL。
 _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
     # 波动率维度
     {
@@ -46,12 +51,15 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "label": "VIX 恐慌指数",
         "classify": vix_ind.classify_value,
         "group": "波动率",
+        # source = YF:^VIX，自动推导 → 不写 source_url
     },
     {
         "name": vts_ind.NAME,
         "label": "VIX 期限结构（VIX/VIX3M）",
         "classify": vts_ind.classify_value,
         "group": "波动率",
+        # 派生指标：VIX/VIX3M 比值，没有单一官方页 → 链到 CBOE VIX term structure 介绍页
+        "source_url": "https://www.cboe.com/tradable_products/vix/vix_options/specifications/",
     },
     # 曲线维度
     {
@@ -85,6 +93,8 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "label": "SOFR-IORB 流动性",
         "classify": sofr_ind.classify_value,
         "group": "流动性",
+        # 派生指标：SOFR - IORB 利差，链 FRED SOFR 主页
+        "source_url": "https://fred.stlouisfed.org/series/SOFR",
     },
     # 跨市场 / 日本维度
     {
@@ -120,10 +130,12 @@ _LEVEL_COLORS = {
 
 
 def _build_rows(conn) -> List[Dict[str, Any]]:
-    """从 DB 拉每个已注册指标的最新值，组装渲染行（含 group）。"""
+    """从 DB 拉每个已注册指标的最新值，组装渲染行（含 group 与 source_url）。"""
     rows: List[Dict[str, Any]] = []
     for ind in _INDICATOR_REGISTRY:
         latest = dbmod.get_latest(conn, ind["name"])
+        # source_url：registry 手填优先，没填走自动推导（FRED:/YF: 等前缀）
+        registry_url = ind.get("source_url")
         if latest is None:
             rows.append({
                 "name": ind["name"],
@@ -134,10 +146,12 @@ def _build_rows(conn) -> List[Dict[str, Any]]:
                 "color": "#9ca3af",  # gray
                 "date": None,
                 "source": None,
+                "source_url": registry_url,  # 即使无数据也保留外链供查阅
                 "ingested_at": None,
             })
             continue
         level = ind["classify"](latest["value"])
+        url = registry_url or derive_source_url(latest["source"])
         rows.append({
             "name": ind["name"],
             "label": ind["label"],
@@ -147,6 +161,7 @@ def _build_rows(conn) -> List[Dict[str, Any]]:
             "color": _LEVEL_COLORS.get(level, "#9ca3af"),
             "date": latest["date"],
             "source": latest["source"],
+            "source_url": url,
             "ingested_at": latest["ingested_at"],
         })
     return rows

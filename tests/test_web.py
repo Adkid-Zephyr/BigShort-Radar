@@ -44,6 +44,19 @@ def test_index_renders_with_data(client):
     assert "YF:^VIX" in body
 
 
+def test_index_renders_source_as_external_link(client):
+    """source 列应该是可点击的官方页外链（VIX → yahoo finance），新页签打开。"""
+    resp = client.get("/")
+    body = resp.get_data(as_text=True)
+    # ^VIX 被 url-encode 成 %5EVIX
+    assert "https://finance.yahoo.com/quote/%5EVIX" in body
+    # target=_blank + rel noopener 防止新页可改 window.opener
+    assert 'target="_blank"' in body
+    assert "noopener" in body
+    # CSS class 标识
+    assert "source-link" in body
+
+
 def test_index_empty_when_no_data(tmp_path):
     p = tmp_path / "radar.sqlite"
     with dbmod.open_db(p):

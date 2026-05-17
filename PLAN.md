@@ -77,6 +77,8 @@
 
 - [x] (2026-05-17) ralph loop 脚手架（iter 34a）— `scripts/ralph_loop.sh` + `.ralph/loop_prompt.md` + `.ralph/progress.log`，支持自动连续跑 N 轮，兜底 pytest/BLOCKED/iter 校验
 - [x] (2026-05-17) ralph loop multimodal 自检（iter 34b）— `scripts/visual_check.sh` + `.ralph/visual_check_template.md` + loop_prompt §4.5。前端改动后跑 visual_check 截图，agent 用 Read 看图自检，写 `.ralph/visual_check_iter<N>.md`。chromium 浏览器需用户首次装（国内代理）
+- [x] (2026-05-17) 指标 source 列改成可点击官方页外链（iter 35）— `src/web/source_links.py` FRED/YF/OECD/CBOE 前缀映射 + registry `source_url` 字段优先，模板蓝色 anchor + ↗ 箭头 + 新页签
+- [ ] empty 行（暂无数据）也保留 source 链接列展示 — 现 colspan=4 占位把链接吞了，让用户没数据时也能跳官方页查
 
 ### 高优先（直接服务 THESIS 核心）
 

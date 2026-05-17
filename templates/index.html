@@ -59,6 +59,21 @@
     td.value { font-variant-numeric: tabular-nums; font-weight: 500; }
     .level { font-size: 12px; color: #9ca3af; }
     .empty { color: #6b7280; font-style: italic; }
+    .source-link {
+      color: #60a5fa;
+      text-decoration: none;
+      border-bottom: 1px dashed #374151;
+      font-size: 13px;
+    }
+    .source-link:hover {
+      color: #93c5fd;
+      border-bottom-color: #60a5fa;
+    }
+    .source-link::after {
+      content: " ↗";
+      font-size: 10px;
+      color: #6b7280;
+    }
     .legend {
       display: flex;
       gap: 16px;
@@ -264,7 +279,13 @@
                   <td class="value">{{ "%.2f"|format(r.value) }}</td>
                   <td class="level" style="color: {{ r.color }};">{{ r.level }}</td>
                   <td>{{ r.date }}</td>
-                  <td>{{ r.source }}</td>
+                  <td>
+                    {% if r.source_url %}
+                      <a class="source-link" href="{{ r.source_url }}" target="_blank" rel="noopener noreferrer">{{ r.source }}</a>
+                    {% else %}
+                      {{ r.source }}
+                    {% endif %}
+                  </td>
                 {% endif %}
               </tr>
             {% endfor %}
