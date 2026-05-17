@@ -33,13 +33,14 @@ log = get_logger(__name__)
 # Level → 分数（线性）
 _LEVEL_SCORE = {Level.GREEN: 0.0, Level.YELLOW: 50.0, Level.RED: 100.0}
 
-# 维度权重（DECISIONS.md 2026-05-15 ADR）
+# 维度权重（DECISIONS.md 2026-05-15 ADR；2026-05-17 iter 44 加入"政策"维度重新平衡）
 _GROUP_WEIGHTS: Dict[str, float] = {
-    "曲线": 25.0,
-    "信用": 25.0,
-    "流动性": 15.0,
-    "波动率": 15.0,
-    "跨市场": 20.0,
+    "曲线": 22.0,
+    "信用": 22.0,
+    "流动性": 13.0,
+    "波动率": 13.0,
+    "跨市场": 18.0,
+    "政策": 12.0,
 }
 
 # 总分阈值

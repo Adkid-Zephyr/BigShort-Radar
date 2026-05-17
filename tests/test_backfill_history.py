@@ -123,5 +123,5 @@ def test_main_runs_all_targets(tmp_path, monkeypatch):
     with patch("scripts.backfill_history.hf.fetch_history", return_value=fake) as m:
         rc = bf.main(["--start", "2024-01-01"])
     assert rc == 0
-    # TARGETS 里 10 条，2 条派生（vix_term_structure, sofr_iorb），fetcher 应被调 8 次
-    assert m.call_count == 8
+    # TARGETS 里 13 条（含 walcl/on_rrp/tga 三条政策维度），2 条派生（vix_term_structure, sofr_iorb），fetcher 应被调 11 次
+    assert m.call_count == 11

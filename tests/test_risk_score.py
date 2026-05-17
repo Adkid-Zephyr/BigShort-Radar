@@ -61,8 +61,8 @@ def test_compute_score_breakdown_structure(conn):
     out = rs.compute_score(conn, _REGISTRY)
     assert "波动率" in out["breakdown"]
     assert "信用" in out["breakdown"]
-    assert out["breakdown"]["波动率"]["weight"] == 15.0
-    assert out["breakdown"]["信用"]["weight"] == 25.0
+    assert out["breakdown"]["波动率"]["weight"] == 13.0
+    assert out["breakdown"]["信用"]["weight"] == 22.0
     assert out["breakdown"]["波动率"]["indicators"][0]["level"] == "GREEN"
 
 

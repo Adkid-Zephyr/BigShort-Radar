@@ -23,10 +23,13 @@ from src.compute.indicators import dxy as dxy_ind
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import jp_10y as jp10y_ind
+from src.compute.indicators import on_rrp as on_rrp_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
+from src.compute.indicators import tga as tga_ind
 from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import vix_term_structure as vts_ind
+from src.compute.indicators import walcl as walcl_ind
 from src.compute.indicators import yield_curve as yc_ind
 from src.compute.indicators import yield_curve_10y3m as yc3m_ind
 from src.store import db as dbmod
@@ -52,6 +55,9 @@ FETCHERS: List[Fetcher] = [
     Fetcher(name="usdjpy", run=usdjpy_ind.fetch_and_store),
     Fetcher(name="dxy_broad", run=dxy_ind.fetch_and_store),
     Fetcher(name="jp_10y", run=jp10y_ind.fetch_and_store),
+    Fetcher(name="walcl", run=walcl_ind.fetch_and_store),
+    Fetcher(name="on_rrp", run=on_rrp_ind.fetch_and_store),
+    Fetcher(name="tga", run=tga_ind.fetch_and_store),
 ]
 
 
@@ -86,6 +92,12 @@ def _briefing_registry():
          "classify": dxy_ind.classify_value, "group": "跨市场"},
         {"name": jp10y_ind.NAME, "label": "日本 10Y 国债收益率",
          "classify": jp10y_ind.classify_value, "group": "跨市场"},
+        {"name": walcl_ind.NAME, "label": "WALCL 联储总资产",
+         "classify": walcl_ind.classify_value, "group": "政策"},
+        {"name": on_rrp_ind.NAME, "label": "ON RRP 隔夜逆回购",
+         "classify": on_rrp_ind.classify_value, "group": "政策"},
+        {"name": tga_ind.NAME, "label": "TGA 财政部账户",
+         "classify": tga_ind.classify_value, "group": "政策"},
     ]
 
 

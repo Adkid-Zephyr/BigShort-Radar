@@ -19,10 +19,13 @@ from src.compute.indicators import dxy as dxy_ind
 from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import jp_10y as jp10y_ind
+from src.compute.indicators import on_rrp as on_rrp_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
+from src.compute.indicators import tga as tga_ind
 from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
 from src.compute.indicators import vix_term_structure as vts_ind
+from src.compute.indicators import walcl as walcl_ind
 from src.compute.indicators import yield_curve as yc_ind
 from src.compute.indicators import yield_curve_10y3m as yc3m_ind
 from src.compute.thresholds import Level
@@ -155,6 +158,34 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "threshold_high": jp10y_ind.THRESHOLD_HIGH,
         "direction": jp10y_ind.DIRECTION,
     },
+    # 政策反应维度（iter 44 加）
+    {
+        "name": walcl_ind.NAME,
+        "label": "WALCL 联储总资产",
+        "classify": walcl_ind.classify_value,
+        "group": "政策",
+        "threshold_low": walcl_ind.THRESHOLD_LOW,
+        "threshold_high": walcl_ind.THRESHOLD_HIGH,
+        "direction": walcl_ind.DIRECTION,
+    },
+    {
+        "name": on_rrp_ind.NAME,
+        "label": "ON RRP 隔夜逆回购",
+        "classify": on_rrp_ind.classify_value,
+        "group": "政策",
+        "threshold_low": on_rrp_ind.THRESHOLD_LOW,
+        "threshold_high": on_rrp_ind.THRESHOLD_HIGH,
+        "direction": on_rrp_ind.DIRECTION,
+    },
+    {
+        "name": tga_ind.NAME,
+        "label": "TGA 财政部账户",
+        "classify": tga_ind.classify_value,
+        "group": "政策",
+        "threshold_low": tga_ind.THRESHOLD_LOW,
+        "threshold_high": tga_ind.THRESHOLD_HIGH,
+        "direction": tga_ind.DIRECTION,
+    },
 ]
 
 # 注册表的快速索引（O(1) 按 name 查），iter 40 加（详情页路由用）
@@ -183,10 +214,16 @@ for _ind in _INDICATOR_REGISTRY:
         _ind.setdefault("source", dxy_ind.SOURCE)
     elif _name == jp10y_ind.NAME:
         _ind.setdefault("source", jp10y_ind.SOURCE)
+    elif _name == walcl_ind.NAME:
+        _ind.setdefault("source", walcl_ind.SOURCE)
+    elif _name == on_rrp_ind.NAME:
+        _ind.setdefault("source", on_rrp_ind.SOURCE)
+    elif _name == tga_ind.NAME:
+        _ind.setdefault("source", tga_ind.SOURCE)
 
 
 # 分组展示顺序（左到右、上到下；用户视角通常先看波动率再看信用再看曲线再看流动性）
-_GROUP_ORDER = ["波动率", "信用", "曲线", "流动性", "跨市场", "估值"]
+_GROUP_ORDER = ["波动率", "信用", "曲线", "流动性", "政策", "跨市场", "估值"]
 
 
 # Level → 颜色（Tailwind 风格的色值，inline style 用）
