@@ -19,8 +19,14 @@ def db_path(tmp_path):
 
 
 @pytest.fixture()
-def client(db_path):
-    app = create_app(db_path=db_path)
+def history_db_path(tmp_path):
+    """空的临时 history cache DB，避免污染测试用本机真实 cache。"""
+    return tmp_path / "history_cache.sqlite"
+
+
+@pytest.fixture()
+def client(db_path, history_db_path):
+    app = create_app(db_path=db_path, history_db_path=history_db_path)
     app.config["TESTING"] = True
     with app.test_client() as c:
         yield c
@@ -57,11 +63,31 @@ def test_index_renders_source_as_external_link(client):
     assert "source-link" in body
 
 
+def test_index_renders_sparkline_column(client):
+    """每行应有 sparkline SVG（即使数据不足也是占位 SVG）。"""
+    resp = client.get("/")
+    body = resp.get_data(as_text=True)
+    # 表头加了"90 天"列
+    assert ">90 天<" in body
+    # SVG 标记存在（占位或正常都有）
+    assert "<svg" in body
+    # spark-cell CSS class 标识
+    assert "spark-cell" in body
+
+
+def test_sparkline_placeholder_when_no_history(client):
+    """tmp_path 主 DB 只有 1 条 VIX 数据，cache DB 为空，应显示"积累中"占位。"""
+    resp = client.get("/")
+    body = resp.get_data(as_text=True)
+    assert "积累中" in body
+
+
 def test_index_empty_when_no_data(tmp_path):
     p = tmp_path / "radar.sqlite"
     with dbmod.open_db(p):
         pass  # 只建 schema，不写数据
-    app = create_app(db_path=p)
+    hist_p = tmp_path / "history_cache.sqlite"  # 空 cache，避免读真实本机 cache
+    app = create_app(db_path=p, history_db_path=hist_p)
     app.config["TESTING"] = True
     with app.test_client() as c:
         resp = c.get("/")
@@ -96,11 +122,11 @@ def test_group_order_matches_constant():
     assert _GROUP_ORDER[:4] == ["波动率", "信用", "曲线", "流动性"]
 
 
-def test_group_header_uses_worst_level(db_path):
+def test_group_header_uses_worst_level(db_path, history_db_path):
     """组内最严等级应当冒到组 header（HY OAS 在信用组，写一条 RED）。"""
     with dbmod.open_db(db_path) as conn:
         dbmod.upsert_indicator(conn, hy_ind.NAME, "2026-05-15", 10.0, "FRED:BAMLH0A0HYM2")
-    app = create_app(db_path=db_path)
+    app = create_app(db_path=db_path, history_db_path=history_db_path)
     with app.test_client() as c:
         resp = c.get("/")
         body = resp.get_data(as_text=True)

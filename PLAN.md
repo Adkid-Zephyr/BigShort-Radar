@@ -85,7 +85,7 @@
 ### 第二阶段路线图（iter 38–50，按用户 2026-05-17 拍板的"扩到 26 条 + 异常监测多视角 + 历史可视化"）
 
 - [x] (2026-05-17) iter 38：历史数据 cache DB 骨架（**akshare 已拍板方案 B：不引入**，仅用 FRED+YF）— 新建 `data/historical_cache.sqlite` + `src/store/history_db.py` + `src/fetch/history_fetcher.py` + `scripts/backfill_history.py`，47 个新测试覆盖 cache DB CRUD + fetcher 路由 + backfill 脚本派生识别
-- [ ] iter 39：Sparkline 90 天微折线（首发异常监测视角）— 每条指标右边加迷你折线 + 阈值带 SVG，纯前端，不引依赖
+- [x] (2026-05-17) iter 39：Sparkline 90 天微折线（首发异常监测视角）— `src/web/sparkline.py` 纯函数 SVG 渲染（折线 + 三档阈值带 + 末点高亮 + 数据不足"积累中"占位），`_INDICATOR_REGISTRY` 加 threshold/direction 元信息引用，`_build_rows` 注入 sparkline_svg，模板加"90 天"列。23 个新测试。8 条指标真实折线 + 2 条占位（VIX yahoo 限速 + SOFR-IORB 派生）
 - [ ] iter 40：同比 / 环比对比表 — 行内列：今日 / 上周 / 上月 / 上季度 + 变化百分比
 - [ ] iter 41：5 年历史回填脚本跑一次 + Z-score 列 — 当前值在过去 5 年分布的位置（百分位）
 - [ ] iter 42：加速度（5/20 天斜率）列 — 标"突然变陡"的指标

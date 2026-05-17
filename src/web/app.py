@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List
 
@@ -26,9 +27,11 @@ from src.compute.indicators import yield_curve as yc_ind
 from src.compute.indicators import yield_curve_10y3m as yc3m_ind
 from src.compute.thresholds import Level
 from src.store import db as dbmod
+from src.store import history_db as hdbmod
 from src.utils.config import load_settings
 from src.utils.logger import get_logger
 from src.web.source_links import source_url as derive_source_url
+from src.web.sparkline import build_sparkline_svg
 
 log = get_logger(__name__)
 
@@ -44,6 +47,9 @@ _TEMPLATE_DIR = _PROJECT_ROOT / "templates"
 # source_url：可选。指标"数据源"对应的官方页面 URL（点击 source 列跳转用）。
 # 大多数指标可由 src/web/source_links.py 从 source 字符串自动推导（FRED:/YF: 等）；
 # 派生指标（多源比值/差值，如 VIX 期限结构）需在这里手填权威页 URL。
+#
+# threshold_low / threshold_high / direction：iter 39 加，sparkline 阈值带需要。
+# 直接引用 indicator 模块常量，避免与模块定义重复。
 _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
     # 波动率维度
     {
@@ -51,6 +57,9 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "label": "VIX 恐慌指数",
         "classify": vix_ind.classify_value,
         "group": "波动率",
+        "threshold_low": vix_ind.THRESHOLD_LOW,
+        "threshold_high": vix_ind.THRESHOLD_HIGH,
+        "direction": vix_ind.DIRECTION,
         # source = YF:^VIX，自动推导 → 不写 source_url
     },
     {
@@ -58,6 +67,9 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "label": "VIX 期限结构（VIX/VIX3M）",
         "classify": vts_ind.classify_value,
         "group": "波动率",
+        "threshold_low": vts_ind.THRESHOLD_LOW,
+        "threshold_high": vts_ind.THRESHOLD_HIGH,
+        "direction": vts_ind.DIRECTION,
         # 派生指标：VIX/VIX3M 比值，没有单一官方页 → 链到 CBOE VIX term structure 介绍页
         "source_url": "https://www.cboe.com/tradable_products/vix/vix_options/specifications/",
     },
@@ -67,12 +79,18 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "label": "10Y-2Y 收益率曲线",
         "classify": yc_ind.classify_value,
         "group": "曲线",
+        "threshold_low": yc_ind.THRESHOLD_LOW,
+        "threshold_high": yc_ind.THRESHOLD_HIGH,
+        "direction": yc_ind.DIRECTION,
     },
     {
         "name": yc3m_ind.NAME,
         "label": "10Y-3M 收益率曲线",
         "classify": yc3m_ind.classify_value,
         "group": "曲线",
+        "threshold_low": yc3m_ind.THRESHOLD_LOW,
+        "threshold_high": yc3m_ind.THRESHOLD_HIGH,
+        "direction": yc3m_ind.DIRECTION,
     },
     # 信用维度
     {
@@ -80,12 +98,18 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "label": "HY OAS 高收益债利差",
         "classify": hyoas_ind.classify_value,
         "group": "信用",
+        "threshold_low": hyoas_ind.THRESHOLD_LOW,
+        "threshold_high": hyoas_ind.THRESHOLD_HIGH,
+        "direction": hyoas_ind.DIRECTION,
     },
     {
         "name": igoas_ind.NAME,
         "label": "IG OAS 投资级利差",
         "classify": igoas_ind.classify_value,
         "group": "信用",
+        "threshold_low": igoas_ind.THRESHOLD_LOW,
+        "threshold_high": igoas_ind.THRESHOLD_HIGH,
+        "direction": igoas_ind.DIRECTION,
     },
     # 流动性维度
     {
@@ -93,6 +117,9 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "label": "SOFR-IORB 流动性",
         "classify": sofr_ind.classify_value,
         "group": "流动性",
+        "threshold_low": sofr_ind.THRESHOLD_LOW,
+        "threshold_high": sofr_ind.THRESHOLD_HIGH,
+        "direction": sofr_ind.DIRECTION,
         # 派生指标：SOFR - IORB 利差，链 FRED SOFR 主页
         "source_url": "https://fred.stlouisfed.org/series/SOFR",
     },
@@ -102,18 +129,27 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "label": "USDJPY 美元日元",
         "classify": usdjpy_ind.classify_value,
         "group": "跨市场",
+        "threshold_low": usdjpy_ind.THRESHOLD_LOW,
+        "threshold_high": usdjpy_ind.THRESHOLD_HIGH,
+        "direction": usdjpy_ind.DIRECTION,
     },
     {
         "name": dxy_ind.NAME,
         "label": "DXY 美元广义指数",
         "classify": dxy_ind.classify_value,
         "group": "跨市场",
+        "threshold_low": dxy_ind.THRESHOLD_LOW,
+        "threshold_high": dxy_ind.THRESHOLD_HIGH,
+        "direction": dxy_ind.DIRECTION,
     },
     {
         "name": jp10y_ind.NAME,
         "label": "日本 10Y 国债收益率",
         "classify": jp10y_ind.classify_value,
         "group": "跨市场",
+        "threshold_low": jp10y_ind.THRESHOLD_LOW,
+        "threshold_high": jp10y_ind.THRESHOLD_HIGH,
+        "direction": jp10y_ind.DIRECTION,
     },
 ]
 
@@ -129,13 +165,58 @@ _LEVEL_COLORS = {
 }
 
 
-def _build_rows(conn) -> List[Dict[str, Any]]:
-    """从 DB 拉每个已注册指标的最新值，组装渲染行（含 group 与 source_url）。"""
+def _fetch_sparkline_values(
+    main_conn,
+    name: str,
+    days: int = 90,
+    history_db_path=None,
+) -> List[float]:
+    """取最近 N 天历史值供 sparkline 用。优先 history cache DB，不够走主 DB 兜底。
+
+    入参：
+        main_conn: 主 DB 连接（已开 schema）
+        name: 指标 name
+        days: 取最近多少天，默认 90
+        history_db_path: 可选自定义 cache DB 路径（测试用）；缺省走 hdbmod.HISTORY_DB_PATH
+    返回：
+        list[float]，按 date 升序。无数据返 []
+    """
+    today = datetime.now(tz=timezone.utc).date()
+    today_iso = today.strftime("%Y-%m-%d")
+    start_iso = (today - timedelta(days=days)).strftime("%Y-%m-%d")
+    values: List[float] = []
+    # 优先 history cache DB
+    try:
+        with hdbmod.open_history_db(history_db_path) as hconn:
+            hist_rows = hdbmod.get_series_range(hconn, name, start=start_iso, end=today_iso)
+            values = [float(r["value"]) for r in hist_rows]
+    except Exception as e:  # noqa: BLE001 — 防御 cache DB 路径权限/磁盘异常
+        log.warning("sparkline: history_db 取 %s 失败 (%s)，走主 DB 兜底", name, e)
+
+    # 兜底：用主 DB get_series（每日累积来源）
+    if len(values) < 10:
+        main_rows = dbmod.get_series(main_conn, name, days=days)
+        values = [float(r["value"]) for r in main_rows]
+
+    return values
+
+
+def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
+    """从 DB 拉每个已注册指标的最新值，组装渲染行（含 group / source_url / sparkline_svg）。"""
     rows: List[Dict[str, Any]] = []
     for ind in _INDICATOR_REGISTRY:
         latest = dbmod.get_latest(conn, ind["name"])
         # source_url：registry 手填优先，没填走自动推导（FRED:/YF: 等前缀）
         registry_url = ind.get("source_url")
+        # sparkline：取近 90 天历史值（先 cache DB，再主 DB 兜底）
+        spark_values = _fetch_sparkline_values(conn, ind["name"], days=90, history_db_path=history_db_path)
+        sparkline_svg = build_sparkline_svg(
+            values=spark_values,
+            threshold_low=ind.get("threshold_low"),
+            threshold_high=ind.get("threshold_high"),
+            direction=ind.get("direction", "up"),
+        )
+
         if latest is None:
             rows.append({
                 "name": ind["name"],
@@ -148,6 +229,7 @@ def _build_rows(conn) -> List[Dict[str, Any]]:
                 "source": None,
                 "source_url": registry_url,  # 即使无数据也保留外链供查阅
                 "ingested_at": None,
+                "sparkline_svg": sparkline_svg,
             })
             continue
         level = ind["classify"](latest["value"])
@@ -163,6 +245,7 @@ def _build_rows(conn) -> List[Dict[str, Any]]:
             "source": latest["source"],
             "source_url": url,
             "ingested_at": latest["ingested_at"],
+            "sparkline_svg": sparkline_svg,
         })
     return rows
 
@@ -208,23 +291,26 @@ def _group_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return ordered
 
 
-def create_app(db_path=None) -> Flask:
+def create_app(db_path=None, history_db_path=None) -> Flask:
     """工厂函数：创建 Flask 应用。
 
     入参：
-        db_path: 可选，覆盖默认 DB 路径（测试用）
+        db_path: 可选，覆盖默认主 DB 路径（测试用）
+        history_db_path: 可选，覆盖历史 cache DB 路径（测试用）
     返回：
         Flask 应用实例
     """
     settings = load_settings()
     app = Flask(__name__, template_folder=str(_TEMPLATE_DIR))
     app.config["DB_PATH"] = db_path if db_path is not None else settings.db_path
+    app.config["HISTORY_DB_PATH"] = history_db_path  # None = 走 hdbmod 默认
 
     @app.route("/")
     def index():
         target = app.config["DB_PATH"]
+        hist_target = app.config.get("HISTORY_DB_PATH")
         with dbmod.open_db(target) as conn:
-            rows = _build_rows(conn)
+            rows = _build_rows(conn, history_db_path=hist_target)
             briefing = bf.get_latest_briefing(conn)
             risk = rs.get_latest_risk_score(conn)
         groups = _group_rows(rows)

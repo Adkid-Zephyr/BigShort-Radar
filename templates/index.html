@@ -59,6 +59,12 @@
     td.value { font-variant-numeric: tabular-nums; font-weight: 500; }
     .level { font-size: 12px; color: #9ca3af; }
     .empty { color: #6b7280; font-style: italic; }
+    td.spark-cell {
+      padding: 4px 8px;
+      vertical-align: middle;
+      width: 132px;
+    }
+    td.spark-cell svg { display: block; }
     .source-link {
       color: #60a5fa;
       text-decoration: none;
@@ -262,6 +268,7 @@
               <th>指标</th>
               <th>当前值</th>
               <th>等级</th>
+              <th>90 天</th>
               <th>日期</th>
               <th>来源</th>
             </tr>
@@ -275,6 +282,7 @@
                 </td>
                 {% if r.value is none %}
                   <td class="empty" colspan="3">暂无数据，先跑 daily_fetch</td>
+                  <td class="spark-cell">{{ r.sparkline_svg | safe }}</td>
                   <td>
                     {% if r.source_url %}
                       <a class="source-link" href="{{ r.source_url }}" target="_blank" rel="noopener noreferrer">查源</a>
@@ -285,6 +293,7 @@
                 {% else %}
                   <td class="value">{{ "%.2f"|format(r.value) }}</td>
                   <td class="level" style="color: {{ r.color }};">{{ r.level }}</td>
+                  <td class="spark-cell">{{ r.sparkline_svg | safe }}</td>
                   <td>{{ r.date }}</td>
                   <td>
                     {% if r.source_url %}
