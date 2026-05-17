@@ -43,6 +43,7 @@ from src.web.acceleration import compute_acceleration
 from src.web.charts import build_indicator_chart_html
 from src.web.comparisons import build_comparisons
 from src.web.events import detect_indicator_events, merge_events
+from src.web.scenarios import evaluate_scenarios
 from src.web.source_links import source_url as derive_source_url
 from src.web.sparkline import build_sparkline_svg
 from src.web.zscore import compute_zscore
@@ -542,11 +543,21 @@ def create_app(db_path=None, history_db_path=None) -> Flask:
             rows = _build_rows(conn, history_db_path=hist_target)
             briefing = bf.get_latest_briefing(conn)
             risk = rs.get_latest_risk_score(conn)
+            # 评估 5 剧本
+            indicator_states = {}
+            for ind in _INDICATOR_REGISTRY:
+                latest = dbmod.get_latest(conn, ind["name"])
+                indicator_states[ind["name"]] = {
+                    "latest": latest,
+                    "classify": ind["classify"],
+                }
+        scenarios = evaluate_scenarios(indicator_states)
         groups = _group_rows(rows)
         return render_template(
             "index.html",
             rows=rows, groups=groups,
             briefing=briefing, risk=risk,
+            scenarios=scenarios,
             level_colors={k.value: v for k, v in _LEVEL_COLORS.items()},
             active_page="index",
         )

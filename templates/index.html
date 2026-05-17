@@ -3,6 +3,28 @@
 {% block title %}Finance Radar{% endblock %}
 
 {% block content %}
+  {% if scenarios %}
+    <div class="scenarios">
+      <div class="scenarios-title">5 个崩盘剧本检测器（THESIS §3.2）</div>
+      <div class="scenarios-grid">
+        {% for s in scenarios %}
+          <div class="scenario-card scenario-{{ s.level }}">
+            <div class="scenario-head">
+              <span class="scenario-label">{{ s.label }}</span>
+              <span class="scenario-score">{{ s.matched }}/{{ s.total }}</span>
+            </div>
+            <div class="scenario-desc">{{ s.description }}</div>
+            {% if s.hits %}
+              <div class="scenario-hits">
+                触发：{% for h in s.hits %}<code>{{ h }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
   {% if risk %}
     {% set risk_color = level_colors[risk.level] %}
     <div class="gauge">

@@ -263,6 +263,40 @@
     .kind-cross_low { color: #fbbf24; }
     .kind-spike { color: #93c5fd; }
 
+    /* 5 剧本检测器 (iter 49) */
+    .scenarios {
+      max-width: 1100px;
+      margin: 0 0 24px;
+    }
+    .scenarios-title {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+    .scenarios-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .scenario-card {
+      background: #11151a;
+      border: 1px solid #1f2937;
+      border-left: 4px solid #4b5563;
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+    .scenario-card.scenario-active { border-left-color: #ef4444; background: rgba(239,68,68,0.05); }
+    .scenario-card.scenario-watch { border-left-color: #eab308; background: rgba(234,179,8,0.04); }
+    .scenario-card.scenario-quiet { border-left-color: #4b5563; }
+    .scenario-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .scenario-label { font-size: 13px; font-weight: 500; color: #e5e7eb; }
+    .scenario-score { font-size: 12px; color: #9ca3af; font-variant-numeric: tabular-nums; }
+    .scenario-desc { font-size: 12px; color: #9ca3af; line-height: 1.5; }
+    .scenario-hits { font-size: 11px; color: #f87171; margin-top: 6px; }
+    .scenario-hits code { background: rgba(239,68,68,0.1); padding: 1px 4px; border-radius: 3px; font-family: 'SF Mono', monospace; font-size: 10px; }
+
     /* ── chatbot 浮窗 ─────────────────────────────────── */
     #chat-toggle {
       position: fixed; bottom: 24px; right: 24px;
