@@ -1,0 +1,22 @@
+{% extends "_base.html" %}
+
+{% block title %}风险矩阵热力图 · Finance Radar{% endblock %}
+
+{% block subtitle %}19 条指标 × 90 天历史等级矩阵 · 看"同时翻红"的时间窗口（视角 D）{% endblock %}
+
+{% block content %}
+  <div class="breadcrumb">
+    <a href="/">← 返回 dashboard</a>
+  </div>
+
+  <div class="detail-chart-wrap" style="max-width: 1300px;">
+    {{ chart_html | safe }}
+  </div>
+
+  <p class="sub" style="max-width: 880px;">
+    每格颜色：<span style="color:#22c55e">GREEN 平静</span> ·
+    <span style="color:#eab308">YELLOW 紧张</span> ·
+    <span style="color:#ef4444">RED 危机定价</span> ·
+    灰色 = 该日无数据。垂直方向"同时翻红"的纵列 = 多指标共振的危险时刻。
+  </p>
+{% endblock %}

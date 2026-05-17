@@ -43,6 +43,7 @@ from src.web.acceleration import compute_acceleration
 from src.web.charts import build_indicator_chart_html
 from src.web.comparisons import build_comparisons
 from src.web.events import detect_indicator_events, merge_events
+from src.web.heatmap import build_heatmap_html, build_risk_timeline_html
 from src.web.scenarios import evaluate_scenarios
 from src.web.source_links import source_url as derive_source_url
 from src.web.sparkline import build_sparkline_svg
@@ -655,6 +656,49 @@ def create_app(db_path=None, history_db_path=None) -> Flask:
                 per_indicator.append(evs)
         events = merge_events(per_indicator)
         return render_template("events.html", events=events, active_page="events")
+
+    @app.route("/heatmap")
+    def heatmap():
+        """风险矩阵热力图（视角 D）：横轴日期 × 纵轴指标，按 level 着色。"""
+        target = app.config["DB_PATH"]
+        hist_target = app.config.get("HISTORY_DB_PATH")
+        indicator_data = []
+        with dbmod.open_db(target) as conn:
+            for ind in _INDICATOR_REGISTRY:
+                dates, values = _fetch_history_pairs(
+                    conn, ind["name"], days=90, history_db_path=hist_target
+                )
+                if len(values) < 2:
+                    continue
+                indicator_data.append({
+                    "name": ind["name"],
+                    "label": ind["label"],
+                    "dates": dates,
+                    "values": values,
+                    "threshold_low": ind.get("threshold_low"),
+                    "threshold_high": ind.get("threshold_high"),
+                    "direction": ind.get("direction", "up"),
+                })
+        chart_html = build_heatmap_html(indicator_data, height=600)
+        return render_template("heatmap.html", chart_html=chart_html, active_page="heatmap")
+
+    @app.route("/timeline")
+    def timeline():
+        """综合温度计 2 年时间线（视角 E）：风险分历史走势 + 三档背景。"""
+        target = app.config["DB_PATH"]
+        with dbmod.open_db(target) as conn:
+            history = rs.get_risk_series(conn, days=730)  # 约 2 年
+            latest = rs.get_latest_risk_score(conn)
+        dates = [r["date"] for r in history]
+        scores = [float(r["score"]) for r in history]
+        chart_html = build_risk_timeline_html(dates, scores, height=460)
+        return render_template(
+            "timeline.html",
+            chart_html=chart_html,
+            latest_risk=latest,
+            point_count=len(history),
+            active_page="timeline",
+        )
 
     @app.route("/healthz")
     def healthz():

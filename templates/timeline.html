@@ -1,0 +1,39 @@
+{% extends "_base.html" %}
+
+{% block title %}综合温度计时间线 · Finance Radar{% endblock %}
+
+{% block subtitle %}综合风险分历史走势 · 看当前位置在过去 2 年中的相对水位（视角 E）{% endblock %}
+
+{% block content %}
+  <div class="breadcrumb">
+    <a href="/">← 返回 dashboard</a>
+  </div>
+
+  <dl class="detail-meta">
+    <div>
+      <dt>当前综合分</dt>
+      <dd>{% if latest_risk %}{{ "%.1f"|format(latest_risk.score) }} / 100{% else %}—{% endif %}</dd>
+    </div>
+    <div>
+      <dt>当前等级</dt>
+      <dd>{{ latest_risk.level if latest_risk else "—" }}</dd>
+    </div>
+    <div>
+      <dt>历史样本</dt>
+      <dd>{{ point_count }} 个数据点</dd>
+    </div>
+    <div>
+      <dt>三档切点</dt>
+      <dd>&lt; 25 GREEN · 25–65 YELLOW · ≥ 65 RED</dd>
+    </div>
+  </dl>
+
+  <div class="detail-chart-wrap" style="max-width: 1100px;">
+    {{ chart_html | safe }}
+  </div>
+
+  <p class="sub" style="max-width: 880px;">
+    数据来源：每日 `daily_fetch` 跑完所有指标后写入 risk_scores 表。
+    点击主 dashboard 上 sparkline 进单指标详情页查看更细。
+  </p>
+{% endblock %}

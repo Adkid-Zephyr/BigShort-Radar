@@ -1,26 +1,22 @@
 # 上一轮总结
 
-迭代 49（2026-05-17）：5 剧本检测器（THESIS §3.2 核心 + 视角 G）。
+迭代 50（2026-05-17）：风险矩阵热力图 + 综合温度计 2 年时间线（视角 D + E）。
 
 ## 本轮做了
 
-- src/web/scenarios.py: 5 剧本定义 + evaluate_scenarios 三档（active/watch/quiet）
-  - A 美元荒：DXY/USDJPY/SOFR-IORB/ON RRP 4 条规则 min_match=3
-  - B 国债基差：SOFR-IORB/yield_curve_10y2y/WALCL min_match=2
-  - C 日本 carry：USDJPY/jp_10y/china_fx_reserves min_match=2
-  - D AI 泡沫：vix_term_structure/vvix/skew min_match=2
-  - E 信用滞后崩：hy_oas/ig_oas min_match=2
-- 主 dashboard 顶部加剧本卡片网格（响应式，红/黄/灰 边色）
-- _base.html 加 .scenarios CSS
-- 15 个新测试，pytest 433
+- src/web/heatmap.py:
+  - build_heatmap_html: 19 指标 × 90 天 × 3 档颜色 plotly Heatmap
+  - build_risk_timeline_html: 综合分 730 天走势 + 三档背景带 + 切点水平线
+- src/compute/risk_score.py: 加 get_risk_series(conn, days) 取风险分历史
+- 新页 /heatmap 与 /timeline，nav 两项激活
+- 10 个新测试，pytest 433 → 443
 
-git iter 48 d79dca2 → 49 待 commit
+git iter 49 2d4b9c9 → 50 待 commit
 
-## 下一轮（iter 50）
-风险矩阵热力图 + 综合温度计 2 年时间线（两个新页）：
-- /heatmap：横轴日期（最近 90 天）× 纵轴指标，每格按 level 着色
-- /timeline：综合分 2 年走势 plotly
-- nav 中"热力图""时间线"激活
+## 下一轮（iter 51）
+路线图最后一轮：政策对冲对比页 + 阈值校准面板（视角 I + J）。
+- /hedge：风险面（VIX/HY OAS）vs 对冲面（WALCL/ON RRP/TGA）并排对比
+- /calibration：每条指标历史读数 vs 当时市场表现（需要市场数据 SP500 等，简化版可只显示阈值历史触发率）
 - 测试 + push
 
-下一句"继续"将进 iter 50。
+下一句"继续"将进 iter 51（路线图终点）。

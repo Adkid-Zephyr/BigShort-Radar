@@ -367,8 +367,8 @@
   <nav class="page-nav">
     <a href="/" class="{% if active_page == 'index' %}current{% endif %}">指标</a>
     <a href="/events" class="{% if active_page == 'events' %}current{% endif %}">事件</a>
-    <a href="#" class="disabled">热力图</a>
-    <a href="#" class="disabled">时间线</a>
+    <a href="/heatmap" class="{% if active_page == 'heatmap' %}current{% endif %}">热力图</a>
+    <a href="/timeline" class="{% if active_page == 'timeline' %}current{% endif %}">时间线</a>
     <a href="#" class="disabled">对冲面</a>
   </nav>
 

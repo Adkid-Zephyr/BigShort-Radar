@@ -186,6 +186,34 @@ def get_latest_risk_score(conn: sqlite3.Connection) -> Optional[Dict[str, Any]]:
     return d
 
 
+def get_risk_series(
+    conn: sqlite3.Connection, days: Optional[int] = None
+) -> List[Dict[str, Any]]:
+    """取风险分历史序列（按 date 升序）。
+
+    入参：
+        conn: 已开 schema 的连接
+        days: 仅取最近 N 天；None=全部
+    返回：
+        list[dict] {date, score, level}
+    """
+    init_risk_score_schema(conn)
+    if days is not None and days > 0:
+        cur = conn.execute(
+            """
+            SELECT date, score, level FROM risk_scores
+            WHERE date >= date('now', ?)
+            ORDER BY date ASC
+            """,
+            (f"-{int(days)} days",),
+        )
+    else:
+        cur = conn.execute(
+            "SELECT date, score, level FROM risk_scores ORDER BY date ASC"
+        )
+    return [dict(r) for r in cur.fetchall()]
+
+
 def run_and_store(
     conn: sqlite3.Connection,
     registry: List[Dict[str, Any]],
