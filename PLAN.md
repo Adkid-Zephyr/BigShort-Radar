@@ -99,6 +99,14 @@
 - [x] (2026-05-17) iter 50：风险矩阵热力图 + 综合温度计 2 年时间线（视角 D + E）— `src/web/heatmap.py` plotly 双函数（`build_heatmap_html` 19 指标×90 天×3 档颜色 / `build_risk_timeline_html` 综合分 730 天 + 三档背景带）。`risk_score.py` 加 `get_risk_series` 拉历史。新页 `/heatmap` 与 `/timeline`，nav 两项激活。10 个新测试，pytest 433 → 443
 - [x] (2026-05-17) iter 51：政策对冲对比页 + 阈值校准面板（视角 I + J）— `src/web/hedge_calibration.py` 双函数（`split_risk_vs_hedge` 按 group 切分 + `calibrate_threshold` 三档占比 + 过敏感/过迟钝判定）。新页 `/hedge`（响应式双栏对比）+ `/calibration`（按 verdict 排序的表格）。nav 5/5 全激活（新加"校准"项）。15 个新测试，pytest 443 → 458。**路线图终点**：iter 37-51 共 14 轮第二阶段全部完成
 
+### 第三阶段：历史回测（iter 52+，THESIS §6.1）
+
+- [x] (2026-05-17) iter 52：历史回测引擎股架 + 数据准备 + 2020 COVID 验证窗口 — 新建 `src/backtest/{registry,score,engine}.py` + 抽出 `risk_score.score_from_indicator_values` helper（重复三次原则）+ `--backtest` 标志双轨指标（vix_fred 5152 条 / ted_spread 3942 条替代已停发的 LIBOR-OIS）。cache DB 9696 → 38059 条，覆盖 2006-2024。COVID 488 天回测跑通输出 CSV。**关键发现**：当前阈值偏迟钝——COVID 黑色星期一 VIX 72 / TED 1.35 仍只 YELLOW 52（9-11 指标 missing 稀释）。26 个新测试，pytest 458 → 484
+- [ ] iter 53：2022 加息熊市窗口 + 三窗口对比报告
+- [ ] iter 54：2008 雷曼周窗口（用 ted_spread 代理 SOFR-IORB）
+- [ ] iter 55：基于回测的阈值校准建议（含 ADR + 改阈值或权重）
+- [ ] iter 56：1970s/1929 老历史数据接口调研（可能需用户人工取数据）
+
 **暂搁**（不在路线图，待评估）：
 - 美元互换基差（USD basis swap）— 无免费源
 - 国债基差交易杠杆（CFTC TFF 周报）— HTML 爬虫依赖暂停清单

@@ -57,36 +57,31 @@ def _classify_total(score: float) -> str:
     return "YELLOW"
 
 
-def compute_score(
-    conn: sqlite3.Connection,
+def score_from_indicator_values(
+    name_to_value: Dict[str, Any],
     registry: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
-    """计算综合风险分。
+    """从 {indicator_name: value} 字典直接算综合分（不查 DB）。
+
+    抽出共用 helper（"重复三次再抽象"原则触发，2026-05-17 iter 52）：
+    主流程的 compute_score 与 src/backtest/score.py::compute_score_for_date 都用这个。
 
     入参：
-        conn: SQLite 连接
-        registry: 指标注册表（含 name/classify/group）
+        name_to_value: dict[str, float | None] —— 缺值/None 视为缺失
+        registry: 指标注册表
     返回：
-        dict: {
-            "score": 32.5,
-            "level": "YELLOW",
-            "breakdown": {
-                "曲线": {"score": 25.0, "weight": 25.0, "indicators": [{name,label,level,score}, ...]},
-                ...
-            },
-            "missing": ["xxx", ...]   # 没数据被跳过的指标 name
-        }
+        dict: {score, level, breakdown, missing}
     """
     by_group: Dict[str, List[Dict[str, Any]]] = {}
     missing: List[str] = []
 
     for ind in registry:
-        latest = dbmod.get_latest(conn, ind["name"])
-        if latest is None:
+        v = name_to_value.get(ind["name"])
+        if v is None:
             missing.append(ind["name"])
             continue
         try:
-            level = ind["classify"](latest["value"])
+            level = ind["classify"](float(v))
             score = _LEVEL_SCORE.get(level, 0.0)
         except Exception:
             missing.append(ind["name"])
@@ -96,10 +91,9 @@ def compute_score(
             "label": ind.get("label", ind["name"]),
             "level": level.value,
             "score": score,
-            "value": latest["value"],
+            "value": float(v),
         })
 
-    # 维度内平均，再按权重加权
     breakdown: Dict[str, Any] = {}
     weighted_sum = 0.0
     weight_total = 0.0
@@ -124,6 +118,26 @@ def compute_score(
         "breakdown": breakdown,
         "missing": missing,
     }
+
+
+def compute_score(
+    conn: sqlite3.Connection,
+    registry: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """计算综合风险分（主流程：从主 DB 取每条指标的 latest 值）。
+
+    入参：
+        conn: SQLite 连接
+        registry: 指标注册表（含 name/classify/group）
+    返回：
+        dict: {score, level, breakdown, missing}（结构同 score_from_indicator_values）
+    """
+    name_to_value: Dict[str, Any] = {}
+    for ind in registry:
+        latest = dbmod.get_latest(conn, ind["name"])
+        if latest is not None:
+            name_to_value[ind["name"]] = latest.get("value")
+    return score_from_indicator_values(name_to_value, registry)
 
 
 # ── 存储 ─────────────────────────────────────────────────────

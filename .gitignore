@@ -27,6 +27,9 @@ __pycache__/
 .ralph/visual_check_iter*/
 .playwright-cli/
 
+# Backtest outputs (iter 52+)
+data/backtest_results/
+
 # OS
 .DS_Store
 

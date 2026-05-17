@@ -80,6 +80,12 @@ TARGETS: List[Target] = [
     Target(name=china_10y_ind.NAME, source=china_10y_ind.SOURCE),
 ]
 
+# 仅回测用扩展（iter 52）：走 --backtest 标志才纳入
+BACKTEST_EXTRA_TARGETS: List[Target] = [
+    Target(name="vix_fred", source="FRED:VIXCLS"),
+    Target(name="ted_spread", source="FRED:TEDRATE"),  # 替代 LIBOR-OIS（USD3MTD156N 已停发）
+]
+
 
 def _is_derived(source: str) -> bool:
     """判断 source 是否是派生（多源合成或纯计算结果）。
@@ -109,6 +115,10 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     p.add_argument("--end", default=None, help="结束日 YYYY-MM-DD（默认到今天）")
     p.add_argument("--years", type=int, default=5, help="回填年数（默认 5），仅当 --start 缺省时生效")
     p.add_argument("--only", default=None, help="只回填某条指标（NAME 完整匹配），便于调试")
+    p.add_argument(
+        "--backtest", action="store_true",
+        help="纳入回测用扩展指标（vix_fred / libor_ois）。配合 --start 2006-01-01 拉长历史",
+    )
     return p.parse_args(argv)
 
 
@@ -153,12 +163,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     start = args.start or _default_start(args.years)
     end = args.end
 
-    targets = TARGETS
+    # iter 52: --backtest 标志纳入 vix_fred / libor_ois
+    base_targets = TARGETS + (BACKTEST_EXTRA_TARGETS if args.backtest else [])
+    targets = base_targets
     if args.only:
-        targets = [t for t in TARGETS if t.name == args.only]
+        targets = [t for t in base_targets if t.name == args.only]
         if not targets:
             log.error("--only %s 没匹配到任何 target，可选：%s",
-                      args.only, [t.name for t in TARGETS])
+                      args.only, [t.name for t in base_targets])
             return 2
 
     total = 0
