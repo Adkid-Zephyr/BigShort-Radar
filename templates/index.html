@@ -50,6 +50,7 @@
               <th>等级</th>
               <th>90 天</th>
               <th>Z</th>
+              <th>Δ</th>
               <th>7d</th>
               <th>30d</th>
               <th>90d</th>
@@ -65,7 +66,7 @@
                   {{ r.label }}
                 </td>
                 {% if r.value is none %}
-                  <td class="empty" colspan="7">暂无数据，先跑 daily_fetch</td>
+                  <td class="empty" colspan="8">暂无数据，先跑 daily_fetch</td>
                   <td class="spark-cell">
                     <a href="/indicator/{{ r.name }}" class="spark-link" title="查看 {{ r.label }} 详情">{{ r.sparkline_svg | safe }}</a>
                   </td>
@@ -87,6 +88,14 @@
                     <td class="zcol{% if r.zscore.extreme %} bad{% endif %}" title="百分位 {{ '%.0f'|format(r.zscore.percentile) }}% / n={{ r.zscore.n }}">
                       {%- if r.zscore.z > 0 -%}+{% endif -%}
                       {{ "%.1f"|format(r.zscore.z) }}σ
+                    </td>
+                  {% else %}
+                    <td class="zcol diff-na">—</td>
+                  {% endif %}
+                  {# 加速度列 Δ #}
+                  {% if r.acceleration and r.acceleration.short_slope is not none %}
+                    <td class="zcol{% if r.acceleration.accelerating %} bad{% endif %}" title="短斜率 {{ '%.4f'|format(r.acceleration.short_slope) }}/d，长斜率 {{ '%.4f'|format(r.acceleration.long_slope) }}/d">
+                      {%- if r.acceleration.accelerating -%}↗{% else %}·{% endif -%}
                     </td>
                   {% else %}
                     <td class="zcol diff-na">—</td>

@@ -1,27 +1,22 @@
 # 上一轮总结
 
-迭代 42（2026-05-17）：Z-score 列（异常监测视角 B）。
+迭代 43（2026-05-17）：加速度 Δ 列（视角 C）。
 
-## 本轮做了
+- src/web/acceleration.py: linear_slope（最小二乘）+ compute_acceleration（短 5d / 长 20d，结合 direction 判加速恶化）
+- _build_rows 注入 acceleration 字段
+- 模板加 Δ 列（↗ 加速恶化红字 / · 不加速 / —）
+- 14 个新测试，pytest 327 → 341
 
-- `src/web/zscore.py`：纯函数 compute_zscore 算 z + percentile + extreme + n
-- `_build_rows` 拉 5 年（days=1825）long_values 单独算 z（不复用 120 天 sparkline）
-- 模板加 Z 列（|z|>2 + 方向匹配 → 红字 bad，hover 提示百分位+n）
-- _base.html 加 .zcol CSS
-- 17 个新测试
+实测：DXY 短斜率 0.66/d > 长斜率 0.31/d → ↗ 红字（美元加速走强）
 
-测试：pytest 310 → 327（+17）
+git iter 42 def6104 → 43 待 commit
 
-实测：jp_10y +2.6σ 99 分位标红（历史最高 = 危险信号）；其他多数 ±1σ 正常
+## 下一轮（iter 44）
+政策反应维度 3 条：WALCL / ON RRP / TGA。
+- src/compute/indicators/walcl.py / on_rrp.py / tga.py（FRED 系列）
+- 阈值待 ADR：WALCL/TGA 是绝对值（万亿美元级）+ 方向 down=减少=QT=收紧 / ON RRP 方向 down=资金离开=流动性恶化
+- 加进 _INDICATOR_REGISTRY + _GROUP_ORDER 加"政策"
+- 跑一次 backfill_history --only walcl 等
+- 测试
 
-git：iter 41 e8e9728 → iter 42 待 commit
-
-## 下一轮（iter 43）
-
-加速度（5/20 天斜率）列：
-- src/web/acceleration.py 纯函数 compute_slope(values, window) 返 (slope_per_day, vs_long_term)
-- 比较短期斜率（5 天）和长期斜率（20 天）：短>长 = 加速恶化
-- 模板加 Δ 列
-- 测试 + push
-
-下一句"继续"将进 iter 43。
+下一句"继续"将进 iter 44。

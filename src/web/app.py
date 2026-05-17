@@ -30,6 +30,7 @@ from src.store import db as dbmod
 from src.store import history_db as hdbmod
 from src.utils.config import load_settings
 from src.utils.logger import get_logger
+from src.web.acceleration import compute_acceleration
 from src.web.charts import build_indicator_chart_html
 from src.web.comparisons import build_comparisons
 from src.web.source_links import source_url as derive_source_url
@@ -314,6 +315,18 @@ def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
         except Exception as e:  # noqa: BLE001
             log.warning("zscore 计算 %s 失败: %s", ind["name"], e)
 
+        # 加速度（短窗 5 / 长窗 20）：用 spark_values 现成的 120 天即够
+        try:
+            accel_info = compute_acceleration(
+                values=spark_values,
+                direction=ind.get("direction", "up"),
+                short_window=5,
+                long_window=20,
+            )
+        except Exception as e:  # noqa: BLE001
+            log.warning("acceleration 计算 %s 失败: %s", ind["name"], e)
+            accel_info = {"short_slope": None, "long_slope": None, "ratio": None, "accelerating": None}
+
         if latest is None:
             rows.append({
                 "name": ind["name"],
@@ -329,6 +342,7 @@ def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
                 "sparkline_svg": sparkline_svg,
                 "comparisons": comparisons,
                 "zscore": zscore_info,
+                "acceleration": accel_info,
             })
             continue
         level = ind["classify"](latest["value"])
@@ -347,6 +361,7 @@ def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
             "sparkline_svg": sparkline_svg,
             "comparisons": comparisons,
             "zscore": zscore_info,
+            "acceleration": accel_info,
         })
     return rows
 
