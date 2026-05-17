@@ -1,6 +1,6 @@
 # BigShort Radar
 
-[![tests](https://img.shields.io/badge/tests-310%20passed-brightgreen)](#测试)
+[![tests](https://img.shields.io/badge/tests-327%20passed-brightgreen)](#测试)
 [![python](https://img.shields.io/badge/python-3.9%2B-blue)](#技术栈)
 [![license](https://img.shields.io/badge/license-CC%20BY--NC%204.0-orange)](./LICENSE)
 
@@ -177,7 +177,7 @@ src/               代码
   utils/           logger / config
 scripts/           daily_fetch / ralph_loop / visual_check / launchd
 templates/         dashboard 单文件模板
-tests/             310 用例
+tests/             327 用例
 ```
 
 ## 开发约定
@@ -233,7 +233,7 @@ tests/             310 用例
 .venv/bin/pytest -q
 ```
 
-当前 310 用例 / 0 失败 / 0 skip。每个 src 模块至少一个测试。Web 测试用 Flask `test_client` + tmp SQLite。
+当前 327 用例 / 0 失败 / 0 skip。每个 src 模块至少一个测试。Web 测试用 Flask `test_client` + tmp SQLite。
 
 ## License
 

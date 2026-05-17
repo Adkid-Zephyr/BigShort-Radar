@@ -34,6 +34,7 @@ from src.web.charts import build_indicator_chart_html
 from src.web.comparisons import build_comparisons
 from src.web.source_links import source_url as derive_source_url
 from src.web.sparkline import build_sparkline_svg
+from src.web.zscore import compute_zscore
 
 log = get_logger(__name__)
 
@@ -298,6 +299,21 @@ def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
             log.warning("comparisons 计算 %s 失败: %s", ind["name"], e)
             comparisons = {7: {}, 30: {}, 90: {}}
 
+        # Z-score（长期分布）：取 5 年历史（约 1825 天），不够回退到现有 spark_values
+        zscore_info: Dict[str, Any] = {"z": None, "percentile": None, "extreme": None, "n": 0}
+        try:
+            _, long_values = _fetch_history_pairs(
+                conn, ind["name"], days=1825, history_db_path=history_db_path
+            )
+            if long_values:
+                zscore_info = compute_zscore(
+                    history_values=long_values,
+                    current_value=latest["value"] if latest else None,
+                    direction=ind.get("direction", "up"),
+                )
+        except Exception as e:  # noqa: BLE001
+            log.warning("zscore 计算 %s 失败: %s", ind["name"], e)
+
         if latest is None:
             rows.append({
                 "name": ind["name"],
@@ -312,6 +328,7 @@ def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
                 "ingested_at": None,
                 "sparkline_svg": sparkline_svg,
                 "comparisons": comparisons,
+                "zscore": zscore_info,
             })
             continue
         level = ind["classify"](latest["value"])
@@ -329,6 +346,7 @@ def _build_rows(conn, history_db_path=None) -> List[Dict[str, Any]]:
             "ingested_at": latest["ingested_at"],
             "sparkline_svg": sparkline_svg,
             "comparisons": comparisons,
+            "zscore": zscore_info,
         })
     return rows
 

@@ -1,34 +1,27 @@
 # 上一轮总结
 
-迭代 41（2026-05-17）：同环比对比表（行内异常监测视角 H）。
+迭代 42（2026-05-17）：Z-score 列（异常监测视角 B）。
 
 ## 本轮做了
 
-- `src/web/comparisons.py` 新建：
-  - `build_comparisons(dates, values, today_value, today_date, direction, lookbacks)` 返 `{7: {...}, 30: ..., 90: ...}`
-  - 每个 dict 含 `lookback_value / pct_change / abs_change / deteriorate`
-  - `_nearest_value_on_or_before` 容忍目标日期没数据 + 跳过 NaN
-  - 恶化判定按 direction（up + 上升 = 恶化 / down + 下降 = 恶化）
-- `src/web/app.py` `_build_rows`：history pairs 改 days=120（覆盖 90d 回看），新增 comparisons 字段
-- `templates/index.html`：表头加 7d/30d/90d 三列，渲染 ±%；empty 行 colspan 4→6
-- `templates/_base.html`：加 .diff/.bad/.good/.diff-na CSS（红字/绿字/灰色）
-- `tests/test_comparisons.py` 22 个新测试（_parse_iso 边界 / _nearest / lookback up&down / 0 past / 持平 / build_comparisons multi-lookback）
+- `src/web/zscore.py`：纯函数 compute_zscore 算 z + percentile + extreme + n
+- `_build_rows` 拉 5 年（days=1825）long_values 单独算 z（不复用 120 天 sparkline）
+- 模板加 Z 列（|z|>2 + 方向匹配 → 红字 bad，hover 提示百分位+n）
+- _base.html 加 .zcol CSS
+- 17 个新测试
 
-测试：pytest **310 通过 / 0 失败 / 0 skip**（288 → 310，+22）
+测试：pytest 310 → 327（+17）
 
-实测分布：8 个红字（恶化）+ 18 个绿字（改善）+ 1 个 N/A，HY OAS 7d -1.1% 绿色 ✅
+实测：jp_10y +2.6σ 99 分位标红（历史最高 = 危险信号）；其他多数 ±1σ 正常
 
-git：iter 40 230ade1 → iter 41 待 commit。
+git：iter 41 e8e9728 → iter 42 待 commit
 
-## 下一轮（iter 42）
+## 下一轮（iter 43）
 
-**5 年历史回填 + Z-score 列**：
+加速度（5/20 天斜率）列：
+- src/web/acceleration.py 纯函数 compute_slope(values, window) 返 (slope_per_day, vs_long_term)
+- 比较短期斜率（5 天）和长期斜率（20 天）：短>长 = 加速恶化
+- 模板加 Δ 列
+- 测试 + push
 
-1. VIX 走 FRED:VIXCLS 替代 yahoo（避限速），重新加进 backfill TARGETS
-2. 跑一次 `backfill_history --years 5` 把 VIX 历史拉齐
-3. `src/web/zscore.py` 纯函数 `compute_zscore(values, today_value)` 返 (z, percentile)
-4. `_build_rows` 注入 z 字段
-5. 模板加 1 列 Z-score（绝对值 > 2 标 bad）
-6. 测试 + 文档同步 + push
-
-下一句"继续"将进 iter 42。
+下一句"继续"将进 iter 43。
