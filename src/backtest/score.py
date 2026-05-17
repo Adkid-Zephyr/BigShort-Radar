@@ -2,6 +2,9 @@
 
 forward-fill 思路：取 ≤target_date 最近的非空值，最多回看 N 天。
 对周值 / 月值指标特别有用（jp_10y 月值会被前向填到下一发布日）。
+
+iter 57(2026-05-17):派生指标(vix_term_structure / sofr_iorb / fra_ois)在 cache DB
+没单独入库,改为先尝试拉 name 本身,缺时调 src.backtest.derived 用底层成分现场算。
 """
 from __future__ import annotations
 
@@ -9,6 +12,7 @@ import sqlite3
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
+from src.backtest import derived as derived_mod
 from src.compute.risk_score import score_from_indicator_values
 from src.store import history_db as hdbmod
 from src.utils.logger import get_logger
@@ -69,14 +73,23 @@ def compute_score_for_date(
     """
     name_to_value: Dict[str, Any] = {}
     for ind in registry:
+        name = ind["name"]
         v = fetch_latest_value_on_or_before(
             history_conn,
-            name=ind["name"],
+            name=name,
             target_date=target_date,
             forward_fill_days=forward_fill_days,
         )
+        # iter 57: name 本身缺时,若是派生指标则用底层成分现场算
+        if v is None and derived_mod.is_derived(name):
+            v = derived_mod.fetch_derived_value(
+                history_conn,
+                name=name,
+                target_date=target_date,
+                forward_fill_days=forward_fill_days,
+            )
         if v is not None:
-            name_to_value[ind["name"]] = v
+            name_to_value[name] = v
 
     result = score_from_indicator_values(name_to_value, registry)
     result["date"] = target_date

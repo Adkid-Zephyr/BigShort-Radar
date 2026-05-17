@@ -24,3 +24,4 @@ iter 53 | 2026-05-18 00:07 | 89b8a81 | tests 492/492 | 2022 加息熊市 RED 39 
 iter 54 | 2026-05-18 00:27 | 78a8646 | tests 492/492 | 2008 雷曼周回测（VIX 36 + TED 3 仍 YELLOW 32 因 missing）+ 三窗口 SUMMARY 完整
 iter 55 | 2026-05-18 00:38 | 77f51ce | tests 492/492 | 前端美化（taste-skill 深色精细 + Geist + Bento + plotly 同步）
 iter 56 | 2026-05-18 01:28 | 65579c4 | tests 492/492 | 前端二次美化（信息驾驶舱）：Bento 5 列单排 + 7 维度 2 列网格 + 表格密度提升 + SVG 圆环 cockpit gauge + 校准 stacked bar
+iter 57 | 2026-05-18 02:05 | dc17be7 | tests 504/504 | 阈值校准:派生指标现场计算(derived.py)+维度 max 触顶+切点 65→60。三窗口重跑 2008/COVID/2022 RED 33/42/393 天

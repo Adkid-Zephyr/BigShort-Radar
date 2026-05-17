@@ -80,10 +80,16 @@ TARGETS: List[Target] = [
     Target(name=china_10y_ind.NAME, source=china_10y_ind.SOURCE),
 ]
 
-# 仅回测用扩展（iter 52）：走 --backtest 标志才纳入
+# 仅回测用扩展（iter 52 / iter 57）：走 --backtest 标志才纳入
 BACKTEST_EXTRA_TARGETS: List[Target] = [
     Target(name="vix_fred", source="FRED:VIXCLS"),
     Target(name="ted_spread", source="FRED:TEDRATE"),  # 替代 LIBOR-OIS（USD3MTD156N 已停发）
+    # iter 57:派生指标(vix_term_structure / sofr_iorb / fra_ois)的底层成分,
+    # 让 src/backtest/derived.py 能现场算出派生值,消除三窗口 100% missing
+    Target(name="vix3m", source="YF:^VIX3M"),     # vts = vix / vix3m
+    Target(name="sofr_raw", source="FRED:SOFR"),  # sofr_iorb / fra_ois 共用
+    Target(name="iorb_raw", source="FRED:IORB"),  # sofr_iorb 用
+    Target(name="dgs3mo", source="FRED:DGS3MO"),  # fra_ois 用
 ]
 
 

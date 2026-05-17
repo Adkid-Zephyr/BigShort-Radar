@@ -1,48 +1,55 @@
 # 上一轮总结
 
-迭代 56（2026-05-17）：前端二次美化（信息驾驶舱方向）。
+迭代 57(2026-05-17):阈值校准三件套(派生现场计算 + 维度 max + 切点 65→60)。
 
 ## 本轮做了
 
-用户看完 iter 55 实拍 6 张截图后认为"还不够好"。EnterPlanMode 与用户对齐:从 6 个候选痛点中选 3 件做(用户选了主页信息密度+空间利用 / 综合温度计 gauge 重做 / 校准页 stacked bar);风格选信息驾驶舱(类 Bloomberg/TradingView)。
+按用户拍板"一轮全做完三件,严格 max",首跑发现"max + 切点 50"会让任一 YELLOW 直接 RED 过敏感,与用户复议改切点 60。
 
-### A. 主页信息密度+空间利用
+### A. 派生指标回测现场计算
 
-- `_base.html` body max-width 1400→1280px
-- Bento `scenarios-grid` 从 `2fr 1fr 1fr` 三列两排（右下空浪费）改 `1.6fr 1fr 1fr 1fr 1fr` 单排五列;A 美元荒大卡仍宽于其它 60%,但只占一排
-- 7 维度组改 `.indicator-grid` `1fr 1fr` 两列网格 + 卡片化（每组加 padding/border/radius/shadow）
-- 表格密度提升:padding 11→8 / 字号 13→12 / Z-Δ-同环比列宽 64→50 / 数字字号 11→10 / spark-cell 132→110
+- 新增 `src/backtest/derived.py` 注册三条派生:
+  - `vix_term_structure` = `vix_fred / vix3m`
+  - `sofr_iorb` = `|sofr_raw - iorb_raw| × 100`(bp)
+  - `fra_ois` = `dgs3mo - sofr_raw`
+- 改 `src/backtest/score.py::compute_score_for_date`:优先取 name 本身,缺时调 `derived_mod.fetch_derived_value`
+- `scripts/backfill_history.py::BACKTEST_EXTRA_TARGETS` 加 4 条原料(vix3m/sofr_raw/iorb_raw/dgs3mo)
+- 跑 backfill --backtest --start 2006-01-01:FRED 三条入库 sofr_raw 2027 / iorb_raw 1755 / dgs3mo 5096;VIX3M 仍受 yahoo 限速降级
 
-### B. 综合温度计 SVG 圆环 cockpit（signature 元素）
+### B. 维度内最严 max
 
-- `.gauge` 从 flex 横排改 grid `220px 1fr`
-- 左 200×200 SVG `<circle r=84>` + `stroke-dasharray "396 528"` 实现 270° 弧 + 90° 底部缺口（transform rotate 135deg）
-- 背景灰环 `rgba(255,255,255,0.14)` + 进度环按 risk.level 三档色 + `filter: drop-shadow(0 0 10px currentColor)` glow
-- 中央绝对定位 56px Geist Mono 大数字 + "/100" + 11px 等级 label
-- 右栏 `.gauge-dims` 7 维度径向条 2 列网格,每行 grid `14px 70px 1fr 56px`(dot + 名 + 5px height bar + 得分×权重 mono 灰字)
+- `src/compute/risk_score.py::score_from_indicator_values` 把 `group_score = sum/len` 改 `max(items.score)`
+- 解决雷曼周 VIX_FRED 36 + TED 3 都触发 RED 但综合分仍 YELLOW 32 的稀释盲区
 
-### C. 校准页 stacked bar
+### C. 切点 65→60
 
-- 三列 GREEN/YELLOW/RED % 数字合并为单根 240×16 stacked bar
-- 三段 flex width 按 %,段宽 ≥18% 加 `seg-wide` class 显内嵌 % 数字
-- hover 整条 + 各段 title tooltip
-- 行 background 按 verdict 微染色
+- `SCORE_RED_MIN = 60.0`(原计划 50,首跑发现过敏感后复议改 60)
+
+### D. 三窗口重跑验证
+
+| 窗口 | 天数 | mean | RED 天 | RED 占比 |
+|---|---:|---:|---:|---:|
+| 2008 雷曼 | 547 | 34.8 | 33 | 6.0% |
+| COVID-19 | 488 | 42.9 | 42 | 8.6% |
+| 2022 加息 | 546 | 67.1 | 393 | 72.0% |
+
+雷曼/COVID 比例合理(6-9%);2022 RED 占 72% 反映史诗级紧张真实情况(通胀 9% + 史上最快加息 + 英国 LDI 危机),但也暴露**组间稀释**残留(单组 100 加权后只占 12-20% 份额)。
 
 ### 测试 & 验证
 
-- pytest 492/492 通过(class 全保留)
-- 关键 class:scenario-card / gauge / cal-verdict / source-link / spark-link / page-nav 全在
-- visual_check 截图归档 `.ralph/visual_iter56/{index_before, index_after, gauge_cockpit, calibration_before, calibration_after}.png`
-- visual check 文档 `.ralph/visual_check_iter56.md`
+- pytest 492 → 504(新 derived 12 个用例 + risk_score 加 1 个 max 用例;mixed_yellow 改 GREEN+YELLOW;classify_total 切点 60)
+- SUMMARY.md 模板更新,自动生成 iter 57 校准后对比表
 
-git iter 55 a8e587b → 56 待 commit
+## 用户额外要求(本轮内未执行,占位 iter 58)
 
-## 下一轮（iter 57）
+用户提出做完后必须做"全局复盘 + 期权交易者视角缺口分析",针对未来辅助交易标的(沪深 300 / 上证 50 / 纳指 / 美七姐妹个股期权)。
+候选数据清单和需用户协助找的接口已存 `.ralph/iter57_postmortem_pending.md`。
+**iter 58 按这条清单做缺口补齐**(原 iter 58 老历史调研后置)。
 
-按原 iter 56 计划(被前端美化两轮临时插队推迟):
+git iter 56 58a5c3d → 57 待 commit
 
-1. cache DB 同步派生指标(vix/sofr_iorb/vts),消除回测三窗口的 100% missing
-2. 综合分算法改"维度内最严触顶"机制(任一指标 RED → 维度 RED)
-3. 总分切点下调 65→50
+## 下一轮(iter 58)
 
-下一句"继续"将进 iter 57。
+阅读 `.ralph/iter57_postmortem_pending.md`,先呈现"自我审视清单"+ "期权视角缺什么" + "数据源候选(免费/需注册)"给用户挑,再 EnterPlanMode 实施。
+
+不要急着写代码 — 用户优先想看"哪些有意义/没意义/缺什么"的判断。

@@ -139,7 +139,7 @@ def render_summary_md(windows: List[Tuple[str, Dict[str, Any]]]) -> str:
         lines.append("## 指标缺失模式（合并所有窗口）")
         lines.append("")
         lines.append("缺失率 = 该指标空值数 / 全窗口总天数。> 50% 的指标在该时间段不可用，")
-        lines.append("是综合分稀释的主因。iter 55 阈值校准时应优先解决这些。")
+        lines.append("是综合分稀释的主因。iter 57 已通过派生现场计算 + 维度内 max 大幅缓解。")
         lines.append("")
         lines.append("| 指标 | 缺失数 | 缺失率 |")
         lines.append("|---|---:|---:|")
@@ -151,27 +151,33 @@ def render_summary_md(windows: List[Tuple[str, Dict[str, Any]]]) -> str:
 
     lines.append("## 关键洞察")
     lines.append("")
-    lines.append("**COVID 2020 vs 2022 加息熊市 对比**：")
+    lines.append("**iter 57 阈值校准后三窗口对比**:")
     lines.append("")
-    lines.append("- COVID（2019-09~2020-12）：488 天，max score 52.1，**RED 0 天**")
-    lines.append("- 2022 加息（2022-01~2023-06）：546 天，max score 82.1，**RED 39 天（集中在 2022-10）**")
+    lines.append("| 窗口 | 天数 | max | mean | RED 天 | RED 占比 |")
+    lines.append("|---|---:|---:|---:|---:|---:|")
+    for label, s in windows:
+        total = s.get("total", 0)
+        red = (s.get("level_counts") or {}).get("RED", 0)
+        red_pct = red / total * 100 if total else 0
+        lines.append(
+            f"| {label} | {total} | {s.get('score_max', 0):.1f} | "
+            f"{s.get('score_mean', 0):.1f} | {red} | {red_pct:.1f}% |"
+        )
     lines.append("")
-    lines.append("**为什么 2022 出 RED 而 COVID 没出？**")
+    lines.append("**iter 57 三处校准**:")
     lines.append("")
-    lines.append("不是因为 2022 比 COVID 危险，而是因为 **数据完整度** 不同：")
-    lines.append("- 2022 期间：HY/IG OAS / WALCL / TGA / ON RRP / FRA-OIS 都有数据")
-    lines.append("- COVID 期间：HY/IG OAS（FRED 历史 2023+）/ VVIX / SKEW（yahoo 限速）/ FRA-OIS（SOFR 2018+）都缺")
-    lines.append("- 缺数据 → 这些维度不计入综合分 → 加权分母变小 → score 被稀释")
+    lines.append("1. **派生指标现场计算**(src/backtest/derived.py):vix_term_structure / sofr_iorb / fra_ois")
+    lines.append("   在 cache DB 没单独入库时,从底层成分(vix3m / sofr / iorb / dgs3mo)现场算。"
+                 "三窗口缺失率从 100% 降到 0-65%(剩余缺失主要是 SOFR FRED 历史只到 2018 之前)")
+    lines.append("2. **维度内 max 触顶**(src/compute/risk_score.py):任一指标 RED → 维度 100,")
+    lines.append("   解决雷曼周 VIX 36 / TED 3 仍 YELLOW 的盲区")
+    lines.append("3. **总分切点 65→60**:配合 max 提高敏感度,但避免\"任一 YELLOW 就总分 RED\"过敏感")
     lines.append("")
-    lines.append("**这是当前算法的盲区**：少数指标走极端（VIX 72 / TED 1.35）应该足以触发 RED，")
-    lines.append("但当前算法是先维度内取平均、再维度间加权，单个指标 RED 被维度内其他指标拉平。")
+    lines.append("**iter 58+ 候选方向**:")
     lines.append("")
-    lines.append("**iter 55 校准方向（候选）**：")
-    lines.append("")
-    lines.append("1. 维度内最严等级触顶机制（任一指标 RED → 维度直接 RED）")
-    lines.append("2. 综合分切点下调（YELLOW/RED 切点 65 → 50？）")
-    lines.append("3. 缺失指标按维度加权而非按指标加权（避免缺数据维度被忽略）")
-    lines.append("4. 单指标极端权重补偿（>2σ 异常的指标贡献额外 +N 分）")
+    lines.append("- VIX3M Yahoo 限速:改用 CBOE CSV 直接源(需评估依赖)")
+    lines.append("- 1970s/1929 老历史接口调研(用户人工取)")
+    lines.append("- 算法层面:维度间也加最严触顶?或加速度/Z-score 也参与综合分?")
     return "\n".join(lines)
 
 

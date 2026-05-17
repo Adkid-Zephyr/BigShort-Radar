@@ -41,11 +41,25 @@ def test_compute_score_all_red(conn):
 
 
 def test_compute_score_mixed_yellow(conn):
-    dbmod.upsert_indicator(conn, vix_ind.NAME, "2026-05-15", 25.0, "YF:^VIX")  # YELLOW
-    dbmod.upsert_indicator(conn, hy_ind.NAME, "2026-05-15", 6.0, "FRED:HY")  # YELLOW
+    # iter 57: 切点改后 50=RED,这里改用 GREEN+YELLOW 混合让综合分落 YELLOW 区
+    # vix=15 GREEN(score 0) + hy=6 YELLOW(score 50);维度 max → 波动率 0,信用 50
+    # 加权 (0×12 + 50×20) / (12+20) = 31.25 → YELLOW
+    dbmod.upsert_indicator(conn, vix_ind.NAME, "2026-05-15", 15.0, "YF:^VIX")  # GREEN
+    dbmod.upsert_indicator(conn, hy_ind.NAME, "2026-05-15", 6.0, "FRED:HY")    # YELLOW
     out = rs.compute_score(conn, _REGISTRY)
-    assert out["score"] == 50.0
+    assert out["score"] == pytest.approx(31.25, abs=0.05)
     assert out["level"] == "YELLOW"
+
+
+def test_dimension_max_promotes_red(conn):
+    """iter 57: 同维度内一 GREEN 一 RED,维度分应取 max=100(旧 mean 算法只 50)。"""
+    # 两条都在"波动率"组的指标:vix RED + 假设另一条 GREEN
+    # 这里用 vix RED + hy YELLOW 验证组间(不同组)各自取本组 max
+    dbmod.upsert_indicator(conn, vix_ind.NAME, "2026-05-15", 50.0, "YF:^VIX")  # RED
+    dbmod.upsert_indicator(conn, hy_ind.NAME, "2026-05-15", 3.0, "FRED:HY")    # GREEN
+    out = rs.compute_score(conn, _REGISTRY)
+    assert out["breakdown"]["波动率"]["score"] == 100.0
+    assert out["breakdown"]["信用"]["score"] == 0.0
 
 
 def test_compute_score_skips_missing(conn):
@@ -67,12 +81,13 @@ def test_compute_score_breakdown_structure(conn):
 
 
 def test_classify_total_thresholds():
+    # iter 57: SCORE_RED_MIN 65→60(配合维度 max,避免"任一 YELLOW 就 RED"过敏感)
     assert rs._classify_total(0) == "GREEN"
     assert rs._classify_total(24.9) == "GREEN"
     assert rs._classify_total(25.0) == "YELLOW"
     assert rs._classify_total(50.0) == "YELLOW"
-    assert rs._classify_total(64.9) == "YELLOW"
-    assert rs._classify_total(65.0) == "RED"
+    assert rs._classify_total(59.9) == "YELLOW"
+    assert rs._classify_total(60.0) == "RED"
     assert rs._classify_total(100.0) == "RED"
 
 

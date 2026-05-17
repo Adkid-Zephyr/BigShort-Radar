@@ -225,6 +225,8 @@ tests/             484 用例
 
 **iter 55-56 前端美化两轮**:iter 55 用 taste-skill 规范做深色精细化,iter 56 改信息驾驶舱方向(SVG 圆环 cockpit gauge + 7 维度径向条 + Bento 5 列单排 + 校准 stacked bar)。详见 `DECISIONS.md` iter 55-56。
 
+**iter 57 阈值校准**:派生指标 vix_term_structure / sofr_iorb / fra_ois 在回测时用底层成分现场计算(消除三窗口 100% missing);维度内 max 触顶(任一指标 RED → 维度 100,解决"少数指标 RED 但综合分被稀释"盲区);总分切点 65→60。三窗口重跑:2008 雷曼 RED 33 天 / COVID 42 天 / 2022 加息 393 天(过去仅 0/0/39)。pytest 504。
+
 ## 技术栈
 
 - Python 3.9+
