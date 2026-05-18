@@ -30,3 +30,4 @@ iter 59 | 2026-05-18 12:40 | 834514b | tests 506/506 | VIX 期限结构切 FRED:
 iter 60 | 2026-05-18 13:35 | 2b0632d | tests 520/520 | 新增 CBOE VIX9D/VIX1Y/Total Put-Call 三条期权交易者指标;真实写入 VIX9D 11/VIX1Y 11/PutCall 1 条
 iter 61 | 2026-05-18 13:55 | ec14cc6 | tests 520/520 | VVIX/SKEW 从 yahoo 切 CBOE 官方 CSV;主 DB 写入 VVIX 11 条 latest 92.94/SKEW 11 条 latest 145.77
 iter 62 | 2026-05-18 14:50 | f6794aa | tests 522/522 | 新增期权情绪维度;Put/Call 拆 total/index/equity;权重重平衡为18/18/13/10/8/13/10/10
+iter 63 | 2026-05-18 15:10 | 854644d | tests 522/522 | 老历史数据源调研:1970s 可用 FRED 代理,1929 只能月频 Shiller/DataHub+FRED;DJIA 日频需用户人工取

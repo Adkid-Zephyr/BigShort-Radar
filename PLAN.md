@@ -112,7 +112,8 @@
 - [x] (2026-05-18) iter 60：期权交易者核心数据补齐 — 新增 `src/fetch/cboe_client.py` 拉 CBOE 官方指数历史 CSV + 解析 daily market stats 页面 Put/Call ratios;新增 `vix9d.py`(CBOE:VIX9D_History.csv,阈值20/32) / `vix1y.py`(CBOE:VIX1Y_History.csv,阈值20/30) / `put_call_total.py`(CBOE Total Put/Call,阈值0.85/1.15)。接入 daily_fetch / web registry / history_fetcher / backfill / source_links。真实写入主 DB:VIX9D 11 条 latest 16.37,VIX1Y 11 条 latest 24.04,Put/Call 当日 0.93。pytest 506→520
 - [x] (2026-05-18) iter 61：CBOE VVIX/SKEW 直拉 CSV — `vvix.py` / `skew.py` 从 yahoo `^VVIX/^SKEW` 切 CBOE 官方 `VVIX_History.csv` / `SKEW_History.csv`,阈值不变;`cboe_client.fetch_index_history` 支持 `DATE,VVIX`/`DATE,SKEW` 两列结构;真实写入主 DB:VVIX 11 条 latest 92.94,SKEW 11 条 latest 145.77;pytest 520 通过
 - [x] (2026-05-18) iter 62：新增“期权情绪”维度 + Put/Call total/index/equity 拆分 — 新增 `put_call_index.py`(index ratio,阈值0.90/1.30) / `put_call_equity.py`(equity ratio,阈值0.55/0.85),`put_call_total` 从波动率迁到期权情绪;风险权重重平衡为 曲线18/信用18/流动性13/波动率10/期权情绪8/跨市场13/政策10/中国10;真实写入主 DB total=0.93,index=1.03,equity=0.59;pytest 520→522
-- [ ] iter 63：1970s/1929 老历史数据接口调研（用户人工取）
+- [x] (2026-05-18) iter 63：1970s/1929 老历史数据接口调研 — 输出 `data/backtest_results/OLD_HISTORY_SOURCES.md`。结论:1970s 可用 FRED 代理完整做(DGS10/TB3MS/DTB3/AAA/BAA/FEDFUNDS/CPI/INDPRO/UNRATE/M1/M2/OILPRICE);1929 只能月频代理(Shiller/DataHub s-and-p-500 CSV + FRED AAA/BAA/INDPRO),若要 DJIA 日频需用户人工取 MeasuringWorth 数据;old-history 应单独做 monthly old-risk score,不混入现有日频综合分
+- [ ] iter 64：月频 old-history 回测引擎骨架（Shiller/DataHub + FRED AAA/BAA/INDPRO/CPI）
 
 **暂搁**（不在路线图，待评估）：
 - 美元互换基差（USD basis swap）— 无免费源

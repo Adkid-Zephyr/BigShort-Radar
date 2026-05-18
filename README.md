@@ -349,3 +349,5 @@ tests/             484 用例
 本项目是个人工具，不构成投资建议。指标阈值由作者基于公开历史数据和文献设定，可能存在偏差或过时。
 任何使用本项目代码、数据、文档进行决策的读者，需自行判断、自行承担风险。
 作者不对任何因使用本项目导致的财务损失承担责任。
+
+**iter 63 老历史数据源调研**:输出 `data/backtest_results/OLD_HISTORY_SOURCES.md`。结论:1970s 可用 FRED 直接做代理回测;1929 只能做月频代理(Shiller/DataHub + FRED AAA/BAA/INDPRO),若要 DJIA 日频需用户人工取 MeasuringWorth 数据。
