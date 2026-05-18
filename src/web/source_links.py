@@ -59,6 +59,11 @@ def source_url(source: Optional[str]) -> Optional[str]:
         return f"https://data.oecd.org/searchresults/?q={quote(ident, safe='')}"
 
     if prefix == "CBOE":
+        if ident.endswith("_History.csv"):
+            symbol = ident.removesuffix("_History.csv")
+            return f"https://www.cboe.com/us/indices/dashboard/{quote(symbol.upper(), safe='')}/"
+        if ident == "US_OPTIONS_DAILY_MARKET_STATISTICS":
+            return "https://www.cboe.com/markets/us/options/market-statistics/daily/"
         return f"https://www.cboe.com/tradable_products/{quote(ident.lower(), safe='')}/"
 
     return None

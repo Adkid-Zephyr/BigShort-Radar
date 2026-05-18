@@ -23,12 +23,15 @@ from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import jp_10y as jp10y_ind
 from src.compute.indicators import on_rrp as on_rrp_ind
+from src.compute.indicators import put_call_total as put_call_ind
 from src.compute.indicators import skew as skew_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
 from src.compute.indicators import tga as tga_ind
 from src.compute.indicators import usdcny as usdcny_ind
 from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
+from src.compute.indicators import vix1y as vix1y_ind
+from src.compute.indicators import vix9d as vix9d_ind
 from src.compute.indicators import vix_term_structure as vts_ind
 from src.compute.indicators import vvix as vvix_ind
 from src.compute.indicators import walcl as walcl_ind
@@ -89,6 +92,33 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "direction": vts_ind.DIRECTION,
         # 派生指标：VIX/VIX3M 比值，没有单一官方页 → 链到 CBOE VIX term structure 介绍页
         "source_url": "https://www.cboe.com/tradable_products/vix/vix_options/specifications/",
+    },
+    {
+        "name": vix9d_ind.NAME,
+        "label": "VIX9D 短端恐慌",
+        "classify": vix9d_ind.classify_value,
+        "group": "波动率",
+        "threshold_low": vix9d_ind.THRESHOLD_LOW,
+        "threshold_high": vix9d_ind.THRESHOLD_HIGH,
+        "direction": vix9d_ind.DIRECTION,
+    },
+    {
+        "name": vix1y_ind.NAME,
+        "label": "VIX1Y 长端恐慌",
+        "classify": vix1y_ind.classify_value,
+        "group": "波动率",
+        "threshold_low": vix1y_ind.THRESHOLD_LOW,
+        "threshold_high": vix1y_ind.THRESHOLD_HIGH,
+        "direction": vix1y_ind.DIRECTION,
+    },
+    {
+        "name": put_call_ind.NAME,
+        "label": "CBOE Total Put/Call",
+        "classify": put_call_ind.classify_value,
+        "group": "波动率",
+        "threshold_low": put_call_ind.THRESHOLD_LOW,
+        "threshold_high": put_call_ind.THRESHOLD_HIGH,
+        "direction": put_call_ind.DIRECTION,
     },
     {
         "name": vvix_ind.NAME,
@@ -265,6 +295,12 @@ for _ind in _INDICATOR_REGISTRY:
         _ind.setdefault("source", vix_ind.SOURCE)
     elif _name == vts_ind.NAME:
         _ind.setdefault("source", vts_ind.SOURCE)
+    elif _name == vix9d_ind.NAME:
+        _ind.setdefault("source", vix9d_ind.SOURCE)
+    elif _name == vix1y_ind.NAME:
+        _ind.setdefault("source", vix1y_ind.SOURCE)
+    elif _name == put_call_ind.NAME:
+        _ind.setdefault("source", put_call_ind.SOURCE)
     elif _name == yc_ind.NAME:
         _ind.setdefault("source", yc_ind.SOURCE)
     elif _name == yc3m_ind.NAME:

@@ -171,3 +171,42 @@
 ## 综合温度计权重（待 P3 阶段定义）
 
 待定。预期六维度：曲线 / 信用 / 估值 / 杠杆 / 流动性 / 跨市场。
+
+### vix9d
+- **代码**：vix9d
+- **数据源**：CBOE:VIX9D_History.csv（CBOE S&P 500 9-Day Volatility Index）
+- **更新频率**：日
+- **计算口径**：原始指数 close（9 天预期波动率）
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：≤ 20
+  - YELLOW：20 – 32
+  - RED：> 32
+- **阈值依据**：短端波动比 VIX 更躁，RED 阈值较 VIX 的 30 稍放宽；用于识别短期事件风险/FOMC/NFP/财报/地缘冲击（DECISIONS.md iter 60 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：2026-05-18
+
+### vix1y
+- **代码**：vix1y
+- **数据源**：CBOE:VIX1Y_History.csv（CBOE 1-Year Volatility Index）
+- **更新频率**：日
+- **计算口径**：原始指数 close（1 年期预期波动率）
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：≤ 20
+  - YELLOW：20 – 30
+  - RED：> 30
+- **阈值依据**：长端波动长期高企代表市场在定价更长周期不确定性；用于区分短期事件恐慌与全期限危机定价（DECISIONS.md iter 60 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：2026-05-18
+
+### put_call_total
+- **代码**：put_call_total
+- **数据源**：CBOE:US_OPTIONS_DAILY_MARKET_STATISTICS（Total Put/Call Ratio 当前快照）
+- **更新频率**：日（页面当前值；历史靠 daily_fetch 每天累积）
+- **计算口径**：Total Put/Call Ratio = put option volume / call option volume
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：< 0.85
+  - YELLOW：0.85 – 1.15
+  - RED：> 1.15
+- **阈值依据**：Put/Call 是情绪指标，高值代表保护需求升温；但有反向解读属性，极高值也可能意味着短期过度 hedging 后的反弹条件。本系统先按危机监控方向处理（DECISIONS.md iter 60 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：2026-05-18

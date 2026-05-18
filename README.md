@@ -4,7 +4,7 @@
 [![python](https://img.shields.io/badge/python-3.9%2B-blue)](#技术栈)
 [![license](https://img.shields.io/badge/license-CC%20BY--NC%204.0-orange)](./LICENSE)
 
-本地金融风险监控系统。每天从 FRED / Yahoo Finance 拉 19 条宏观与市场指标，按预设阈值分档，七维加权生成 0–100 综合分，可选调用 LLM 出中文简报。
+本地金融风险监控系统。每天从 FRED / Yahoo Finance / CBOE 拉 22 条宏观与市场指标，按预设阈值分档，七维加权生成 0–100 综合分，可选调用 LLM 出中文简报。
 作者用它对抗自己的情绪化判断 —— 看历史指标，比看朋友圈靠谱。
 
 完整投资论点见 [`THESIS_PUBLIC.md`](./THESIS_PUBLIC.md)（脱敏版）/ [`THESIS.md`](./THESIS.md)（私人版,private 仓库才有）。
@@ -33,7 +33,7 @@ cd finance-radar
 
 | Key | 必填? | 用途 | 申请链接 | 不填会怎样 |
 |---|---|---|---|---|
-| `FRED_API_KEY` | **必填** | 拉 19 条指标里的 14 条(主力数据源) | https://fred.stlouisfed.org/docs/api/api_key.html (免费,1 分钟,只需注册邮箱) | 主流程几乎全废 |
+| `FRED_API_KEY` | **必填** | 拉 22 条指标里的多数主力数据(FRED 系列) | https://fred.stlouisfed.org/docs/api/api_key.html (免费,1 分钟,只需注册邮箱) | 主流程大半失效;CBOE 指标仍可拉 |
 | `DASHSCOPE_API_KEY` | 可选 | LLM 风险简报 + dashboard chatbot | https://bailian.console.aliyun.com/ (国内,需实名,有免费额度) | 简报 + chatbot 显示"未配置",其他不受影响 |
 | GitHub PAT | 可选 | ralph_loop.sh 自动 push | GitHub Settings → Developer Settings → Personal access tokens(勾 `repo` scope) | ralph loop 跑完不会自动 push,需手动 push |
 
@@ -128,6 +128,9 @@ LLM         briefing        get_latest) dashboard
 |---|---|---|---|---|---|---|
 | 波动率 | VIX | FRED `VIXCLS` | up | < 20 | 20–30 | > 30 |
 | 波动率 | VIX 期限结构（VIX/VIX3M） | FRED `VIXCLS`÷`VXVCLS` | up | < 0.95 | 0.95–1.0 | > 1.0 |
+| 波动率 | VIX9D 短端恐慌 | CBOE `VIX9D_History.csv` | up | ≤ 20 | 20–32 | > 32 |
+| 波动率 | VIX1Y 长端恐慌 | CBOE `VIX1Y_History.csv` | up | ≤ 20 | 20–30 | > 30 |
+| 波动率 | CBOE Total Put/Call | CBOE Daily Market Statistics | up | < 0.85 | 0.85–1.15 | > 1.15 |
 | 曲线 | 10Y-2Y | FRED `T10Y2Y` | down | > 0.5 | 0–0.5 | < 0 |
 | 曲线 | 10Y-3M | FRED `T10Y3M` | down | > 0.5 | 0–0.5 | < 0 |
 | 信用 | HY OAS | FRED `BAMLH0A0HYM2` | up | < 4 | 4–8 | > 8 |
@@ -310,6 +313,8 @@ tests/             484 用例
 **iter 58 数据源稳定性修复**:VIX 主流程从 yahoo `^VIX` 切到 FRED `VIXCLS`,修复 dashboard 核心波动率指标因 yahoo 限速长期"积累中"问题。真实写入主 DB 10 条,pytest 505。
 
 **iter 59 期限结构补齐**:VIX 期限结构从 yahoo `^VIX/^VIX3M` 切到 FRED `VIXCLS/VXVCLS`,主 DB 回填 VIX 1629 条 / VIX 期限结构 1600 条,修复波动率期限结构空白。pytest 506。
+
+**iter 60 期权交易者数据补齐**:新增 CBOE 官方源三条 — VIX9D(短端恐慌)/VIX1Y(长端恐慌)/Total Put-Call Ratio(期权情绪),主 DB 写入 VIX9D 11 条 / VIX1Y 11 条 / Put-Call 当日 1 条。pytest 520。
 
 ## 技术栈
 

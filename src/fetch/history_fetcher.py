@@ -1,9 +1,10 @@
 """通用历史拉取路由器。
 
-按 source 字符串前缀分发到 fred_client / yf_client：
-  - "FRED:T10Y2Y"  → fred_client.fetch_series("T10Y2Y", start, end)
-  - "YF:^VIX"      → yf_client.fetch_close("^VIX", start, end)
-  - 其他前缀（OECD/CBOE/派生）目前无可拉源，返回 None
+按 source 字符串前缀分发到 fred_client / yf_client / cboe_client：
+  - "FRED:T10Y2Y"             → fred_client.fetch_series("T10Y2Y", start, end)
+  - "YF:^VIX"                 → yf_client.fetch_close("^VIX", start, end)
+  - "CBOE:VIX9D_History.csv"  → cboe_client.fetch_index_history("VIX9D", start, end)
+  - 其他前缀（OECD/派生）目前无可拉源，返回 None
 
 iter 38 决策方案 B：不引 akshare（DECISIONS.md 2026-05-17）。
 中国维度走 FRED 系列前缀（FRED:DEXCHUS / FRED:TRESEGCNM052N / FRED:IRLTLT01CNM156N）。
@@ -17,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from src.fetch import fred_client, yf_client
+from src.fetch import cboe_client, fred_client, yf_client
 from src.utils.logger import get_logger
 
 log = get_logger(__name__)
@@ -34,7 +35,8 @@ def fetch_history(
         source: 数据源字符串，前缀决定路由：
                 - "FRED:<series_id>" → fred_client.fetch_series
                 - "YF:<ticker>" / "YAHOO:<ticker>" → yf_client.fetch_close
-                - 其他（OECD:/CBOE:/派生/格式不对）→ None + warning
+                - "CBOE:<SYMBOL>_History.csv" → cboe_client.fetch_index_history
+                - 其他（OECD:/派生/格式不对）→ None + warning
         start: ISO YYYY-MM-DD
         end: ISO YYYY-MM-DD，缺省到当前
     返回：
@@ -71,9 +73,14 @@ def fetch_history(
         log.info("history_fetcher: YF %s [%s -> %s]", ident, start, end or "now")
         return yf_client.fetch_close(ident, start=start, end=end)
 
-    # 未知前缀（OECD/CBOE/akshare 等）：iter 38 方案 B 不引外部 client
+    if prefix == "CBOE" and ident.endswith("_History.csv"):
+        symbol = ident.removesuffix("_History.csv")
+        log.info("history_fetcher: CBOE %s [%s -> %s]", symbol, start, end or "now")
+        return cboe_client.fetch_index_history(symbol, start=start, end=end)
+
+    # 未知前缀（OECD/akshare 等）：iter 38 方案 B 不引外部 client
     log.warning(
-        "history_fetcher: 不支持的 source 前缀 %s（仅支持 FRED:/YF:/YAHOO:），跳过 %s",
+        "history_fetcher: 不支持的 source 前缀 %s（仅支持 FRED:/YF:/YAHOO:/CBOE:），跳过 %s",
         prefix, source,
     )
     return None

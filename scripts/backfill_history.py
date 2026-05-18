@@ -39,6 +39,8 @@ from src.compute.indicators import tga as tga_ind
 from src.compute.indicators import usdcny as usdcny_ind
 from src.compute.indicators import usdjpy as usdjpy_ind
 from src.compute.indicators import vix as vix_ind
+from src.compute.indicators import vix1y as vix1y_ind
+from src.compute.indicators import vix9d as vix9d_ind
 from src.compute.indicators import vix_term_structure as vts_ind
 from src.compute.indicators import vvix as vvix_ind
 from src.compute.indicators import walcl as walcl_ind
@@ -64,7 +66,9 @@ TARGETS: List[Target] = [
     Target(name=yc3m_ind.NAME, source=yc3m_ind.SOURCE),
     Target(name=hyoas_ind.NAME, source=hyoas_ind.SOURCE),
     Target(name=igoas_ind.NAME, source=igoas_ind.SOURCE),
-    Target(name=vts_ind.NAME, source=vts_ind.SOURCE),     # 派生（YF:^VIX/^VIX3M），脚本里跳过
+    Target(name=vts_ind.NAME, source=vts_ind.SOURCE),
+    Target(name=vix9d_ind.NAME, source=vix9d_ind.SOURCE),
+    Target(name=vix1y_ind.NAME, source=vix1y_ind.SOURCE),
     Target(name=sofr_ind.NAME, source=sofr_ind.SOURCE),   # 派生（FRED:SOFR-IORB），脚本里跳过
     Target(name=usdjpy_ind.NAME, source=usdjpy_ind.SOURCE),
     Target(name=dxy_ind.NAME, source=dxy_ind.SOURCE),
