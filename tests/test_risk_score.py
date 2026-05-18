@@ -43,11 +43,11 @@ def test_compute_score_all_red(conn):
 def test_compute_score_mixed_yellow(conn):
     # iter 57: 切点改后 50=RED,这里改用 GREEN+YELLOW 混合让综合分落 YELLOW 区
     # vix=15 GREEN(score 0) + hy=6 YELLOW(score 50);维度 max → 波动率 0,信用 50
-    # 加权 (0×12 + 50×20) / (12+20) = 31.25 → YELLOW
+    # 加权 (0×10 + 50×18) / (10+18) = 32.14 → YELLOW
     dbmod.upsert_indicator(conn, vix_ind.NAME, "2026-05-15", 15.0, "YF:^VIX")  # GREEN
     dbmod.upsert_indicator(conn, hy_ind.NAME, "2026-05-15", 6.0, "FRED:HY")    # YELLOW
     out = rs.compute_score(conn, _REGISTRY)
-    assert out["score"] == pytest.approx(31.25, abs=0.05)
+    assert out["score"] == pytest.approx(32.14, abs=0.05)
     assert out["level"] == "YELLOW"
 
 
@@ -75,8 +75,8 @@ def test_compute_score_breakdown_structure(conn):
     out = rs.compute_score(conn, _REGISTRY)
     assert "波动率" in out["breakdown"]
     assert "信用" in out["breakdown"]
-    assert out["breakdown"]["波动率"]["weight"] == 12.0
-    assert out["breakdown"]["信用"]["weight"] == 20.0
+    assert out["breakdown"]["波动率"]["weight"] == 10.0
+    assert out["breakdown"]["信用"]["weight"] == 18.0
     assert out["breakdown"]["波动率"]["indicators"][0]["level"] == "GREEN"
 
 

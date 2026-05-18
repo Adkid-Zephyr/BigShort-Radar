@@ -37,13 +37,14 @@ log = get_logger(__name__)
 # Level → 分数（线性）
 _LEVEL_SCORE = {Level.GREEN: 0.0, Level.YELLOW: 50.0, Level.RED: 100.0}
 
-# 维度权重（DECISIONS.md 2026-05-15/2026-05-17 ADR；iter 46 加入"中国"维度再平衡）
+# 维度权重（DECISIONS.md 2026-05-15/2026-05-17/2026-05-18 ADR；iter 62 加入"期权情绪"维度）
 _GROUP_WEIGHTS: Dict[str, float] = {
-    "曲线": 20.0,
-    "信用": 20.0,
-    "流动性": 14.0,    # 含 SOFR-IORB + FRA-OIS
-    "波动率": 12.0,    # 含 VIX/VIX 期限/VVIX/SKEW
-    "跨市场": 14.0,    # 美元/日元/日 10Y
+    "曲线": 18.0,
+    "信用": 18.0,
+    "流动性": 13.0,    # 含 SOFR-IORB + FRA-OIS
+    "波动率": 10.0,    # VIX/VIX term/VIX9D/VIX1Y/VVIX/SKEW
+    "期权情绪": 8.0,   # Put/Call total/index/equity
+    "跨市场": 13.0,    # 美元/日元/日 10Y
     "政策": 10.0,      # WALCL/ON RRP/TGA
     "中国": 10.0,      # 外储/USDCNY/CNY 10Y
 }

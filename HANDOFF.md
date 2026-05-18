@@ -78,7 +78,9 @@
 >
 > **iter 60 实时基线（2026-05-18）**：pytest 520/0/0;新增 CBOE 官方源三条期权交易者指标:VIX9D 短端恐慌 / VIX1Y 长端恐慌 / Total Put-Call Ratio。真实写入主 DB:VIX9D 11 条 latest 16.37,VIX1Y 11 条 latest 24.04,Put/Call 当日 0.93。当前总指标 22 条 / 7 维度。
 >
-> **iter 61 实时基线（2026-05-18）**：pytest 520/0/0;VVIX/SKEW 从 yahoo `^VVIX/^SKEW` 切 CBOE 官方 CSV,真实写入主 DB VVIX 11 条 latest 92.94 / SKEW 11 条 latest 145.77。dashboard 波动率核心空白基本补齐。下一轮可把 Put/Call 拆 total/index/equity 或讨论期权情绪独立 group/权重。
+> **iter 61 实时基线（2026-05-18）**：pytest 520/0/0;VVIX/SKEW 从 yahoo `^VVIX/^SKEW` 切 CBOE 官方 CSV,真实写入主 DB VVIX 11 条 latest 92.94 / SKEW 11 条 latest 145.77。dashboard 波动率核心空白基本补齐。
+>
+> **iter 62 实时基线（2026-05-18）**：pytest 522/0/0;新增第 8 维“期权情绪”,Put/Call 从波动率拆出并拆 total/index/equity 三条。权重:曲线18/信用18/流动性13/波动率10/期权情绪8/跨市场13/政策10/中国10。真实写入主 DB total=0.93,index=1.03,equity=0.59。
 - launchd：每天北京 05:30 自动跑（已加载 `~/Library/LaunchAgents/com.financeradar.daily.plist`）
 - 当前下一项 PLAN：按 `THESIS.md` §6 列出的优先级走（历史回测 → 算法升级 → 融资市场维度补缺 → 政策反应维度新增）
 

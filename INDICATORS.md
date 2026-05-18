@@ -236,3 +236,29 @@
 - **阈值依据**：OTM put 相对 ATM 的尾部溢价；SKEW 高 + VIX 低常是“lull before storm”结构（DECISIONS.md iter 61 ADR）
 - **翻译卡**：待用户补
 - **最近一次校准**：2026-05-18
+
+### put_call_index
+- **代码**：put_call_index
+- **数据源**：CBOE:US_OPTIONS_DAILY_MARKET_STATISTICS（Index Put/Call Ratio 当前快照）
+- **更新频率**：日（页面当前值；历史靠 daily_fetch 每天累积）
+- **计算口径**：Index Put/Call Ratio = index put option volume / index call option volume
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：< 0.90
+  - YELLOW：0.90 – 1.30
+  - RED：> 1.30
+- **阈值依据**：Index Put/Call 更接近机构/组合层面的尾部保护需求,比 equity put/call 更适合监控系统性风险（DECISIONS.md iter 62 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：2026-05-18
+
+### put_call_equity
+- **代码**：put_call_equity
+- **数据源**：CBOE:US_OPTIONS_DAILY_MARKET_STATISTICS（Equity Put/Call Ratio 当前快照）
+- **更新频率**：日（页面当前值；历史靠 daily_fetch 每天累积）
+- **计算口径**：Equity Put/Call Ratio = equity put option volume / equity call option volume
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：< 0.55
+  - YELLOW：0.55 – 0.85
+  - RED：> 0.85
+- **阈值依据**：Equity Put/Call 更容易混入散户追涨/财报交易噪声,但和 index put/call 对照能区分指数保护与个股期权情绪（DECISIONS.md iter 62 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：2026-05-18

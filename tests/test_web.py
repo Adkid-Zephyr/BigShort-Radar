@@ -119,7 +119,7 @@ def test_index_renders_group_headers(client):
 
 
 def test_group_order_matches_constant():
-    assert _GROUP_ORDER[:4] == ["波动率", "信用", "曲线", "流动性"]
+    assert _GROUP_ORDER[:5] == ["波动率", "期权情绪", "信用", "曲线", "流动性"]
 
 
 def test_group_header_uses_worst_level(db_path, history_db_path):

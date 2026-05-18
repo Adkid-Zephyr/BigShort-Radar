@@ -23,6 +23,8 @@ from src.compute.indicators import hy_oas as hyoas_ind
 from src.compute.indicators import ig_oas as igoas_ind
 from src.compute.indicators import jp_10y as jp10y_ind
 from src.compute.indicators import on_rrp as on_rrp_ind
+from src.compute.indicators import put_call_equity as put_call_equity_ind
+from src.compute.indicators import put_call_index as put_call_index_ind
 from src.compute.indicators import put_call_total as put_call_ind
 from src.compute.indicators import skew as skew_ind
 from src.compute.indicators import sofr_iorb as sofr_ind
@@ -112,15 +114,6 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "direction": vix1y_ind.DIRECTION,
     },
     {
-        "name": put_call_ind.NAME,
-        "label": "CBOE Total Put/Call",
-        "classify": put_call_ind.classify_value,
-        "group": "波动率",
-        "threshold_low": put_call_ind.THRESHOLD_LOW,
-        "threshold_high": put_call_ind.THRESHOLD_HIGH,
-        "direction": put_call_ind.DIRECTION,
-    },
-    {
         "name": vvix_ind.NAME,
         "label": "VVIX 恐慌之恐慌",
         "classify": vvix_ind.classify_value,
@@ -137,6 +130,34 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "threshold_low": skew_ind.THRESHOLD_LOW,
         "threshold_high": skew_ind.THRESHOLD_HIGH,
         "direction": skew_ind.DIRECTION,
+    },
+    # 期权情绪维度（iter 62:Put/Call 从波动率拆出）
+    {
+        "name": put_call_ind.NAME,
+        "label": "CBOE Total Put/Call",
+        "classify": put_call_ind.classify_value,
+        "group": "期权情绪",
+        "threshold_low": put_call_ind.THRESHOLD_LOW,
+        "threshold_high": put_call_ind.THRESHOLD_HIGH,
+        "direction": put_call_ind.DIRECTION,
+    },
+    {
+        "name": put_call_index_ind.NAME,
+        "label": "CBOE Index Put/Call",
+        "classify": put_call_index_ind.classify_value,
+        "group": "期权情绪",
+        "threshold_low": put_call_index_ind.THRESHOLD_LOW,
+        "threshold_high": put_call_index_ind.THRESHOLD_HIGH,
+        "direction": put_call_index_ind.DIRECTION,
+    },
+    {
+        "name": put_call_equity_ind.NAME,
+        "label": "CBOE Equity Put/Call",
+        "classify": put_call_equity_ind.classify_value,
+        "group": "期权情绪",
+        "threshold_low": put_call_equity_ind.THRESHOLD_LOW,
+        "threshold_high": put_call_equity_ind.THRESHOLD_HIGH,
+        "direction": put_call_equity_ind.DIRECTION,
     },
     # 曲线维度
     {
@@ -301,6 +322,10 @@ for _ind in _INDICATOR_REGISTRY:
         _ind.setdefault("source", vix1y_ind.SOURCE)
     elif _name == put_call_ind.NAME:
         _ind.setdefault("source", put_call_ind.SOURCE)
+    elif _name == put_call_index_ind.NAME:
+        _ind.setdefault("source", put_call_index_ind.SOURCE)
+    elif _name == put_call_equity_ind.NAME:
+        _ind.setdefault("source", put_call_equity_ind.SOURCE)
     elif _name == yc_ind.NAME:
         _ind.setdefault("source", yc_ind.SOURCE)
     elif _name == yc3m_ind.NAME:
@@ -338,7 +363,7 @@ for _ind in _INDICATOR_REGISTRY:
 
 
 # 分组展示顺序（左到右、上到下；用户视角通常先看波动率再看信用再看曲线再看流动性）
-_GROUP_ORDER = ["波动率", "信用", "曲线", "流动性", "政策", "跨市场", "中国", "估值"]
+_GROUP_ORDER = ["波动率", "期权情绪", "信用", "曲线", "流动性", "政策", "跨市场", "中国", "估值"]
 
 
 # Level → 颜色（Tailwind 风格的色值，inline style 用）

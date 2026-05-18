@@ -1,62 +1,77 @@
 # 上一轮总结
 
-迭代 61(2026-05-18):VVIX/SKEW 从 yahoo 切 CBOE 官方 CSV,补齐 dashboard 尾部风险指标空白。
+迭代 62(2026-05-18):新增“期权情绪”维度,把 Put/Call 从波动率拆出来,并拆成 total/index/equity 三条。
 
 ## 本轮做了
 
-### A. VVIX/SKEW 数据源切换
+### A. 新增两条 Put/Call 子指标
 
-- `src/compute/indicators/vvix.py`
-  - `yf_client.fetch_close("^VVIX")` → `cboe_client.fetch_index_history("VVIX")`
-  - `SOURCE = "YF:^VVIX"` → `SOURCE = "CBOE:VVIX_History.csv"`
-  - 阈值 90/120 不变
+- `src/compute/indicators/put_call_index.py`
+  - 取 CBOE daily ratios 的 `index`
+  - 阈值 0.90/1.30
+  - 更接近机构/组合层面的指数保护需求
 
-- `src/compute/indicators/skew.py`
-  - `yf_client.fetch_close("^SKEW")` → `cboe_client.fetch_index_history("SKEW")`
-  - `SOURCE = "YF:^SKEW"` → `SOURCE = "CBOE:SKEW_History.csv"`
-  - 阈值 130/145 不变
+- `src/compute/indicators/put_call_equity.py`
+  - 取 CBOE daily ratios 的 `equity`
+  - 阈值 0.55/0.85
+  - 更容易混入个股/散户/财报交易噪声,但和 index 对照有意义
 
-### B. CBOE client 增强
+### B. 新增第 8 维:期权情绪
 
-- `src/fetch/cboe_client.py::fetch_index_history`
-  - 原本支持 `DATE,OPEN,HIGH,LOW,CLOSE`
-  - 新增支持 CBOE 旧式 `DATE,VVIX` / `DATE,SKEW` 两列结构
-  - value_col = CLOSE if exists else symbol.upper()
+- `put_call_total` group 从 “波动率” 改 “期权情绪”
+- `put_call_index` / `put_call_equity` 也归入 “期权情绪”
+- `src/web/app.py` `_GROUP_ORDER` 加 `期权情绪`,放在波动率后
 
-### C. 测试更新
+### C. 风险权重重平衡
 
-- `tests/test_volatility_indicators.py`
-  - source 断言改 CBOE
-  - mock 从 yf_client 改 cboe_client
-- pytest 520/520 通过
+`src/compute/risk_score.py`:
 
-### D. 真实补数据
+- 曲线 20 → 18
+- 信用 20 → 18
+- 流动性 14 → 13
+- 波动率 12 → 10
+- 期权情绪 新增 8
+- 跨市场 14 → 13
+- 政策 10 不变
+- 中国 10 不变
 
-- VVIX:写入主 DB 11 条,latest 2026-05-15 value=92.94 source=CBOE:VVIX_History.csv
-- SKEW:写入主 DB 11 条,latest 2026-05-15 value=145.77 source=CBOE:SKEW_History.csv
+总和仍 100。
 
-### E. 文档同步
+理由:期权情绪对交易很重要,但 Put/Call 噪声比 VIX/SKEW 更大,所以权重低于波动率/信用/曲线。
 
-- `INDICATORS.md` 加 vvix/skew 两条指标卡
-- `DECISIONS.md` 加 iter 61 ADR
-- `README.md` 指标表与 iter 61 说明更新
-- `HANDOFF.md` 更新基线
-- `PLAN.md` 标记 iter 61 完成
+### D. 接入全链路
+
+- `daily_fetch.py` 加 index/equity fetcher + briefing registry
+- `web/app.py` 加 registry + source fallback
+- `tests/test_put_call_total.py` 加 index/equity 写库和 classify
+- `tests/test_risk_score.py` / `tests/test_web.py` 同步权重/组顺序
+
+### E. 真实验证
+
+写入主 DB:
+
+- put_call_total:2026-05-18 value=0.93
+- put_call_index:2026-05-18 value=1.03
+- put_call_equity:2026-05-18 value=0.59
+
+### F. 测试
+
+pytest 520 → 522 全过。
 
 ## 本轮客观自我评价
 
 **对 vision 的贡献度**:⭐⭐⭐⭐
-- 监控金融危机维度:VVIX/SKEW 是尾部风险和反身性关键指标,修掉 yahoo 限速空白后 dashboard 可信度提升。
-- 为大空头交易做准备维度:VVIX 衡量"恐慌本身的波动",SKEW 衡量左尾保险溢价,两者直接影响买 put/put spread 的时机与贵贱判断。
+- 监控金融危机维度:把期权市场成交情绪从隐含波动率中拆出,避免 Put/Call 噪声污染波动率维度。
+- 为大空头交易做准备维度:index put/call 可以看机构指数保护需求,equity put/call 可以看个股期权情绪,比 total 单一数字有更强解释力。
 
 **有没有跑偏**:
-- 没跑偏。继续沿着期权交易者核心数据和可靠源修复推进。
+- 没跑偏。这轮没有加 UI,而是修正指标归类和权重,减少 iter 57 max 算法的副作用。
 
 **坦率失误 / 妥协**:
-- 只补了最近 2026-05-01 起的 11 条主 DB 数据;CBOE CSV 历史全量可拉,但本轮为了快速修 dashboard 没回填 2006-2026 全历史到主 DB/cache。
-- SKEW latest 145.77 直接 RED,说明当前 tail risk 定价已较高,后续简报和剧本要关注。
+- Put/Call 三条仍只有当前快照,没有历史回填。CBOE 页面目前没公开历史 CSV/API,历史只能靠 daily_fetch 每天累积。
+- 阈值是经验值,后续至少积累 3-6 个月后要回看是否过敏感。
 
 **下一轮真正该做的**:
-- iter 62 建议把 Put/Call 拆成 total/index/equity 三条,或先讨论是否新建 `期权情绪` 维度。因为 Put/Call 与 VIX/SKEW 不完全同类,放在波动率组会被 max 触顶放大。
+- 可以暂缓继续加期权数据,转回主线:1970s/1929 老历史数据接口调研;或者做仓位建议映射(综合分→风险敞口/对冲预算/现金)。
 
-git iter 60 4a5fb67 → 61 待 commit
+git iter 61 9ff632d → 62 待 commit

@@ -37,6 +37,8 @@ from src.compute.indicators import vix1y as vix1y_ind
 from src.compute.indicators import vix9d as vix9d_ind
 from src.compute.indicators import vix_term_structure as vts_ind
 from src.compute.indicators import vvix as vvix_ind
+from src.compute.indicators import put_call_equity as put_call_equity_ind
+from src.compute.indicators import put_call_index as put_call_index_ind
 from src.compute.indicators import put_call_total as put_call_ind
 from src.compute.indicators import walcl as walcl_ind
 from src.compute.indicators import yield_curve as yc_ind
@@ -63,6 +65,8 @@ FETCHERS: List[Fetcher] = [
     Fetcher(name="vix9d", run=vix9d_ind.fetch_and_store),
     Fetcher(name="vix1y", run=vix1y_ind.fetch_and_store),
     Fetcher(name="put_call_total", run=put_call_ind.fetch_and_store),
+    Fetcher(name="put_call_index", run=put_call_index_ind.fetch_and_store),
+    Fetcher(name="put_call_equity", run=put_call_equity_ind.fetch_and_store),
     Fetcher(name="sofr_iorb", run=sofr_ind.fetch_and_store),
     Fetcher(name="usdjpy", run=usdjpy_ind.fetch_and_store),
     Fetcher(name="dxy_broad", run=dxy_ind.fetch_and_store),
@@ -99,7 +103,11 @@ def _briefing_registry():
         {"name": vix1y_ind.NAME, "label": "VIX1Y 长端恐慌",
          "classify": vix1y_ind.classify_value, "group": "波动率"},
         {"name": put_call_ind.NAME, "label": "CBOE Total Put/Call",
-         "classify": put_call_ind.classify_value, "group": "波动率"},
+         "classify": put_call_ind.classify_value, "group": "期权情绪"},
+        {"name": put_call_index_ind.NAME, "label": "CBOE Index Put/Call",
+         "classify": put_call_index_ind.classify_value, "group": "期权情绪"},
+        {"name": put_call_equity_ind.NAME, "label": "CBOE Equity Put/Call",
+         "classify": put_call_equity_ind.classify_value, "group": "期权情绪"},
         {"name": yc_ind.NAME, "label": "10Y-2Y 收益率曲线",
          "classify": yc_ind.classify_value, "group": "曲线"},
         {"name": yc3m_ind.NAME, "label": "10Y-3M 收益率曲线",
