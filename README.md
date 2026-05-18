@@ -131,6 +131,8 @@ LLM         briefing        get_latest) dashboard
 | 波动率 | VIX9D 短端恐慌 | CBOE `VIX9D_History.csv` | up | ≤ 20 | 20–32 | > 32 |
 | 波动率 | VIX1Y 长端恐慌 | CBOE `VIX1Y_History.csv` | up | ≤ 20 | 20–30 | > 30 |
 | 波动率 | CBOE Total Put/Call | CBOE Daily Market Statistics | up | < 0.85 | 0.85–1.15 | > 1.15 |
+| 波动率 | VVIX 恐慌之恐慌 | CBOE `VVIX_History.csv` | up | < 90 | 90–120 | > 120 |
+| 波动率 | SKEW 黑天鹅定价 | CBOE `SKEW_History.csv` | up | < 130 | 130–145 | > 145 |
 | 曲线 | 10Y-2Y | FRED `T10Y2Y` | down | > 0.5 | 0–0.5 | < 0 |
 | 曲线 | 10Y-3M | FRED `T10Y3M` | down | > 0.5 | 0–0.5 | < 0 |
 | 信用 | HY OAS | FRED `BAMLH0A0HYM2` | up | < 4 | 4–8 | > 8 |
@@ -315,6 +317,8 @@ tests/             484 用例
 **iter 59 期限结构补齐**:VIX 期限结构从 yahoo `^VIX/^VIX3M` 切到 FRED `VIXCLS/VXVCLS`,主 DB 回填 VIX 1629 条 / VIX 期限结构 1600 条,修复波动率期限结构空白。pytest 506。
 
 **iter 60 期权交易者数据补齐**:新增 CBOE 官方源三条 — VIX9D(短端恐慌)/VIX1Y(长端恐慌)/Total Put-Call Ratio(期权情绪),主 DB 写入 VIX9D 11 条 / VIX1Y 11 条 / Put-Call 当日 1 条。pytest 520。
+
+**iter 61 CBOE 官方源替代 yahoo 限速**:VVIX/SKEW 从 yahoo `^VVIX/^SKEW` 切到 CBOE 官方 CSV,补齐 dashboard 尾部风险指标空白。主 DB 写入 VVIX 11 条 / SKEW 11 条。pytest 520。
 
 ## 技术栈
 

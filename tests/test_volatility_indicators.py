@@ -24,14 +24,14 @@ class TestVvix:
 
     def test_constants(self):
         assert vvix_ind.NAME == "vvix"
-        assert vvix_ind.SOURCE == "YF:^VVIX"
+        assert vvix_ind.SOURCE == "CBOE:VVIX_History.csv"
         assert vvix_ind.DIRECTION == "up"
 
     def test_fetch_and_store(self, tmp_path):
         idx = pd.to_datetime(["2024-01-03"])
         s = pd.Series([85.0], index=idx)
         with dbmod.open_db(tmp_path / "t.sqlite") as conn:
-            with patch("src.compute.indicators.vvix.yf_client.fetch_close", return_value=s):
+            with patch("src.compute.indicators.vvix.cboe_client.fetch_index_history", return_value=s):
                 n = vvix_ind.fetch_and_store(conn, start="2024-01-01")
         assert n == 1
 
@@ -48,14 +48,14 @@ class TestSkew:
 
     def test_constants(self):
         assert skew_ind.NAME == "skew"
-        assert skew_ind.SOURCE == "YF:^SKEW"
+        assert skew_ind.SOURCE == "CBOE:SKEW_History.csv"
         assert skew_ind.DIRECTION == "up"
 
     def test_fetch_and_store(self, tmp_path):
         idx = pd.to_datetime(["2024-01-03"])
         s = pd.Series([130.0], index=idx)
         with dbmod.open_db(tmp_path / "t.sqlite") as conn:
-            with patch("src.compute.indicators.skew.yf_client.fetch_close", return_value=s):
+            with patch("src.compute.indicators.skew.cboe_client.fetch_index_history", return_value=s):
                 n = skew_ind.fetch_and_store(conn, start="2024-01-01")
         assert n == 1
 

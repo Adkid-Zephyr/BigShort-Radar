@@ -1,83 +1,62 @@
 # 上一轮总结
 
-迭代 60(2026-05-18):期权交易者核心数据补齐 — CBOE Put/Call + VIX9D/VIX1Y。
+迭代 61(2026-05-18):VVIX/SKEW 从 yahoo 切 CBOE 官方 CSV,补齐 dashboard 尾部风险指标空白。
 
 ## 本轮做了
 
-### A. 新增 CBOE public fetch client
+### A. VVIX/SKEW 数据源切换
 
-- `src/fetch/cboe_client.py`
-  - `fetch_index_history(symbol,start,end)`:拉 `https://cdn.cboe.com/api/global/us_indices/daily_prices/{SYMBOL}_History.csv`,解析 `DATE,OPEN,HIGH,LOW,CLOSE`,取 CLOSE
-  - `fetch_put_call_ratios()`:解析 CBOE US Options Daily Market Statistics 页面 Next.js 内嵌 ratios JSON
-  - 不引入新依赖,只用 requirements 已有的 requests/pandas
+- `src/compute/indicators/vvix.py`
+  - `yf_client.fetch_close("^VVIX")` → `cboe_client.fetch_index_history("VVIX")`
+  - `SOURCE = "YF:^VVIX"` → `SOURCE = "CBOE:VVIX_History.csv"`
+  - 阈值 90/120 不变
 
-### B. 新增三条期权交易者指标
+- `src/compute/indicators/skew.py`
+  - `yf_client.fetch_close("^SKEW")` → `cboe_client.fetch_index_history("SKEW")`
+  - `SOURCE = "YF:^SKEW"` → `SOURCE = "CBOE:SKEW_History.csv"`
+  - 阈值 130/145 不变
 
-1. `vix9d`
-   - source `CBOE:VIX9D_History.csv`
-   - 阈值 20/32,方向 up
-   - 用来监控短端事件风险(FOMC/NFP/财报/地缘冲击)
+### B. CBOE client 增强
 
-2. `vix1y`
-   - source `CBOE:VIX1Y_History.csv`
-   - 阈值 20/30,方向 up
-   - 用来区分短期事件恐慌 vs 全期限危机定价
+- `src/fetch/cboe_client.py::fetch_index_history`
+  - 原本支持 `DATE,OPEN,HIGH,LOW,CLOSE`
+  - 新增支持 CBOE 旧式 `DATE,VVIX` / `DATE,SKEW` 两列结构
+  - value_col = CLOSE if exists else symbol.upper()
 
-3. `put_call_total`
-   - source `CBOE:US_OPTIONS_DAILY_MARKET_STATISTICS`
-   - 阈值 0.85/1.15,方向 up
-   - 当前快照,历史靠 daily_fetch 每天累积
-   - caveat:Put/Call 有反向指标属性,本系统先按危机监控方向处理
+### C. 测试更新
 
-### C. 接入全链路
+- `tests/test_volatility_indicators.py`
+  - source 断言改 CBOE
+  - mock 从 yf_client 改 cboe_client
+- pytest 520/520 通过
 
-- `scripts/daily_fetch.py` 加 3 个 fetcher
-- `src/web/app.py` `_INDICATOR_REGISTRY` 加 3 条,group=波动率
-- `src/fetch/history_fetcher.py` 支持 `CBOE:<SYMBOL>_History.csv`
-- `scripts/backfill_history.py` 加 vix9d/vix1y target(Put/Call 无历史源,不 backfill)
-- `src/web/source_links.py` 支持 CBOE index dashboard / daily market stats 链接
+### D. 真实补数据
 
-### D. 真实验证
+- VVIX:写入主 DB 11 条,latest 2026-05-15 value=92.94 source=CBOE:VVIX_History.csv
+- SKEW:写入主 DB 11 条,latest 2026-05-15 value=145.77 source=CBOE:SKEW_History.csv
 
-- VIX9D:写入主 DB 11 条,latest 2026-05-15 value=16.37
-- VIX1Y:写入主 DB 11 条,latest 2026-05-15 value=24.04
-- Put/Call total:写入今日 1 条,value=0.93
+### E. 文档同步
 
-### E. 测试
-
-新增:
-- `tests/test_cboe_client.py`
-- `tests/test_vix9d_vix1y.py`
-- `tests/test_put_call_total.py`
-
-pytest 506 → 520 全过。
-
-### F. 文档同步
-
-- `INDICATORS.md` 加三条指标卡
-- `DECISIONS.md` 加 iter 60 ADR
-- `README.md` 指标表与 iter 60 说明更新
-- `HANDOFF.md` 基线更新到 22 条 / 7 维度
-- `PLAN.md` iter 60 标记完成
+- `INDICATORS.md` 加 vvix/skew 两条指标卡
+- `DECISIONS.md` 加 iter 61 ADR
+- `README.md` 指标表与 iter 61 说明更新
+- `HANDOFF.md` 更新基线
+- `PLAN.md` 标记 iter 61 完成
 
 ## 本轮客观自我评价
 
-**对 vision 的贡献度**:⭐⭐⭐⭐⭐
-- 监控金融危机维度:VIX9D/VIX1Y 给出短端 vs 长端波动率曲线,比单一 VIX 更能区分"事件恐慌"和"全期限危机定价"。
-- 为大空头交易做准备维度:Put/Call Ratio 是期权交易者每天看的资金情绪指标;VIX9D/VIX1Y 直接服务纳指/七姐妹/指数期权的期限选择。
+**对 vision 的贡献度**:⭐⭐⭐⭐
+- 监控金融危机维度:VVIX/SKEW 是尾部风险和反身性关键指标,修掉 yahoo 限速空白后 dashboard 可信度提升。
+- 为大空头交易做准备维度:VVIX 衡量"恐慌本身的波动",SKEW 衡量左尾保险溢价,两者直接影响买 put/put spread 的时机与贵贱判断。
 
 **有没有跑偏**:
-- 没跑偏。本轮不是 UI,也不是宏观慢指标,而是直接补期权交易者核心数据。
+- 没跑偏。继续沿着期权交易者核心数据和可靠源修复推进。
 
 **坦率失误 / 妥协**:
-- Put/Call Ratio 当前只能从 CBOE 页面解析当日快照,没有公开历史 API/CSV。页面结构变化会导致解析失败,已用测试覆盖当前结构。
-- Put/Call Ratio 作为风险指标有反向解释属性,不能机械地"越高越空"。下一轮如发现噪声大,应拆到 `期权情绪` 独立 group,不要直接挤压波动率维度。
+- 只补了最近 2026-05-01 起的 11 条主 DB 数据;CBOE CSV 历史全量可拉,但本轮为了快速修 dashboard 没回填 2006-2026 全历史到主 DB/cache。
+- SKEW latest 145.77 直接 RED,说明当前 tail risk 定价已较高,后续简报和剧本要关注。
 
 **下一轮真正该做的**:
-- iter 61 二选一:
-  1. CBOE VVIX/SKEW 直拉,彻底摆脱 yahoo 限速;
-  2. Put/Call 拆成 total/index/equity 三条,区分指数保护 vs 个股追涨/恐慌。
+- iter 62 建议把 Put/Call 拆成 total/index/equity 三条,或先讨论是否新建 `期权情绪` 维度。因为 Put/Call 与 VIX/SKEW 不完全同类,放在波动率组会被 max 触顶放大。
 
-当前推荐 1:先修 VVIX/SKEW 空白,因为这俩已经在 dashboard 却经常没数据。
-
-git iter 59 7fa5002 → 60 待 commit
+git iter 60 4a5fb67 → 61 待 commit

@@ -41,21 +41,25 @@ def fetch_index_history(symbol: str, start: str, end: Optional[str] = None) -> O
         log.error("CBOE 指数历史拉取失败 symbol=%s: %s", symbol, e)
         return None
 
-    if df.empty or "DATE" not in df.columns or "CLOSE" not in df.columns:
+    if df.empty or "DATE" not in df.columns:
         log.warning("CBOE 指数历史格式异常 symbol=%s columns=%s", symbol, list(df.columns))
+        return None
+    value_col = "CLOSE" if "CLOSE" in df.columns else symbol.upper()
+    if value_col not in df.columns:
+        log.warning("CBOE 指数历史缺少值列 symbol=%s columns=%s", symbol, list(df.columns))
         return None
 
     try:
         df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce")
-        df["CLOSE"] = pd.to_numeric(df["CLOSE"], errors="coerce")
-        df = df.dropna(subset=["DATE", "CLOSE"]).sort_values("DATE")
+        df[value_col] = pd.to_numeric(df[value_col], errors="coerce")
+        df = df.dropna(subset=["DATE", value_col]).sort_values("DATE")
         start_ts = pd.to_datetime(start)
         df = df[df["DATE"] >= start_ts]
         if end is not None:
             df = df[df["DATE"] <= pd.to_datetime(end)]
         if df.empty:
             return None
-        s = pd.Series(df["CLOSE"].to_numpy(), index=df["DATE"], name="value")
+        s = pd.Series(df[value_col].to_numpy(), index=df["DATE"], name="value")
         return s
     except Exception as e:  # noqa: BLE001
         log.error("CBOE 指数历史解析失败 symbol=%s: %s", symbol, e)

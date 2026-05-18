@@ -210,3 +210,29 @@
 - **阈值依据**：Put/Call 是情绪指标，高值代表保护需求升温；但有反向解读属性，极高值也可能意味着短期过度 hedging 后的反弹条件。本系统先按危机监控方向处理（DECISIONS.md iter 60 ADR）
 - **翻译卡**：待用户补
 - **最近一次校准**：2026-05-18
+
+### vvix
+- **代码**：vvix
+- **数据源**：CBOE:VVIX_History.csv（CBOE VIX of VIX）
+- **更新频率**：日
+- **计算口径**：原始指数 close
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：< 90
+  - YELLOW：90 – 120
+  - RED：> 120
+- **阈值依据**：恐慌之恐慌。高 VVIX = 市场预计 VIX 自身要剧烈波动；2008/2020 春峰值曾 >200（DECISIONS.md iter 61 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：2026-05-18
+
+### skew
+- **代码**：skew
+- **数据源**：CBOE:SKEW_History.csv（CBOE SKEW Index）
+- **更新频率**：日
+- **计算口径**：原始指数 close
+- **阈值**（方向：↑ 升=风险升）
+  - GREEN：< 130
+  - YELLOW：130 – 145
+  - RED：> 145
+- **阈值依据**：OTM put 相对 ATM 的尾部溢价；SKEW 高 + VIX 低常是“lull before storm”结构（DECISIONS.md iter 61 ADR）
+- **翻译卡**：待用户补
+- **最近一次校准**：2026-05-18

@@ -110,8 +110,9 @@
 - [x] (2026-05-18) iter 58：VIX 主流程切 FRED:VIXCLS — `src/compute/indicators/vix.py` 从 yfinance `^VIX` 切到 FRED `VIXCLS`,阈值不变;`tests/test_vix.py` 改 mock fred_client + 加 `test_source_is_fred` 防回退 yahoo;真实 FRED fetch 写入主 DB 10 条,latest 2026-05-14 17.26 source=FRED:VIXCLS;pytest 505 通过。目的:修复主 dashboard VIX 因 yahoo 限速长期"积累中"空白
 - [x] (2026-05-18) iter 59：VIX 期限结构切 FRED:VIXCLS/VXVCLS + 补齐 VIX/VIX3M 主 DB 历史 — `src/compute/indicators/vix_term_structure.py` 从 yahoo `^VIX/^VIX3M` 切到 FRED `VIXCLS/VXVCLS`,阈值不变;`tests/test_vix_term_structure.py` 改 mock fred_client + 加 `test_source_is_fred`;真实回填主 DB:VIX 1629 条,VIX 期限结构 1600 条,latest ratio=0.8278 source=FRED:VIXCLS/VXVCLS;pytest 506 通过。调研发现 FRED `VXSTCLS`/`VXMTCLS` 不存在,删除错误 vix9d/vix1y 草稿,下一轮再查官方源
 - [x] (2026-05-18) iter 60：期权交易者核心数据补齐 — 新增 `src/fetch/cboe_client.py` 拉 CBOE 官方指数历史 CSV + 解析 daily market stats 页面 Put/Call ratios;新增 `vix9d.py`(CBOE:VIX9D_History.csv,阈值20/32) / `vix1y.py`(CBOE:VIX1Y_History.csv,阈值20/30) / `put_call_total.py`(CBOE Total Put/Call,阈值0.85/1.15)。接入 daily_fetch / web registry / history_fetcher / backfill / source_links。真实写入主 DB:VIX9D 11 条 latest 16.37,VIX1Y 11 条 latest 24.04,Put/Call 当日 0.93。pytest 506→520
-- [ ] iter 61：CBOE VVIX/SKEW 直拉 CSV 或 Put/Call 拆 total/index/equity 三条（取决于用户优先级）
-- [ ] iter 62：1970s/1929 老历史数据接口调研（用户人工取）
+- [x] (2026-05-18) iter 61：CBOE VVIX/SKEW 直拉 CSV — `vvix.py` / `skew.py` 从 yahoo `^VVIX/^SKEW` 切 CBOE 官方 `VVIX_History.csv` / `SKEW_History.csv`,阈值不变;`cboe_client.fetch_index_history` 支持 `DATE,VVIX`/`DATE,SKEW` 两列结构;真实写入主 DB:VVIX 11 条 latest 92.94,SKEW 11 条 latest 145.77;pytest 520 通过
+- [ ] iter 62：Put/Call 拆 total/index/equity 三条 或 期权情绪独立 group/权重讨论
+- [ ] iter 63：1970s/1929 老历史数据接口调研（用户人工取）
 
 **暂搁**（不在路线图，待评估）：
 - 美元互换基差（USD basis swap）— 无免费源

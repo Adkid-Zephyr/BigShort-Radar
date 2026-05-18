@@ -1,6 +1,6 @@
 """VVIX — VIX 指数自身的隐含波动率（"恐慌之恐慌"）。
 
-数据源：YF:^VVIX（CBOE VIX of VIX）
+数据源：CBOE:VVIX_History.csv（CBOE VIX of VIX）
 - 日值
 - 衡量市场对 VIX 未来波动的预期
 - 高 VVIX = 市场预计 VIX 自身要大幅波动（极端情绪可能切换）
@@ -18,7 +18,7 @@
   - 2020/3 ~210
 
 写库 schema：
-  name="vvix", date=YYYY-MM-DD, value=指数, source="YF:^VVIX"
+  name="vvix", date=YYYY-MM-DD, value=指数, source="CBOE:VVIX_History.csv"
 """
 from __future__ import annotations
 
@@ -26,15 +26,15 @@ import sqlite3
 from typing import Optional
 
 from src.compute.thresholds import Level, classify
-from src.fetch import yf_client
+from src.fetch import cboe_client
 from src.store import db as dbmod
 from src.utils.logger import get_logger
 
 log = get_logger(__name__)
 
 NAME = "vvix"
-TICKER = "^VVIX"
-SOURCE = "YF:^VVIX"
+SYMBOL = "VVIX"
+SOURCE = "CBOE:VVIX_History.csv"
 DIRECTION = "up"
 
 THRESHOLD_LOW = 90.0
@@ -50,5 +50,5 @@ def fetch_and_store(
     start: str = "2020-01-01",
     end: Optional[str] = None,
 ) -> int:
-    series = yf_client.fetch_close(TICKER, start=start, end=end)
+    series = cboe_client.fetch_index_history(SYMBOL, start=start, end=end)
     return dbmod.upsert_series_from_pandas(conn, name=NAME, source=SOURCE, series=series)
