@@ -353,3 +353,5 @@ tests/             484 用例
 **iter 63 老历史数据源调研**:输出 `data/backtest_results/OLD_HISTORY_SOURCES.md`。结论:1970s 可用 FRED 直接做代理回测;1929 只能做月频代理(Shiller/DataHub + FRED AAA/BAA/INDPRO),若要 DJIA 日频需用户人工取 MeasuringWorth 数据。
 
 **iter 64 首页温度计实时计算**:修复 dashboard gauge 使用 `risk_scores` 旧快照导致波动率维度仍为 0 的问题。首页现在按 latest 指标实时计算;`risk_scores` 仅用于时间线历史页。pytest 523。
+
+**iter 65 隐藏首页风险简报**:dashboard 不再显示“今日风险简报”卡片,保留右下角 AI 助手浮窗。后端 briefing 数据与生成逻辑保留,只是展示层隐藏。pytest 523。

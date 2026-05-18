@@ -114,7 +114,8 @@
 - [x] (2026-05-18) iter 62：新增“期权情绪”维度 + Put/Call total/index/equity 拆分 — 新增 `put_call_index.py`(index ratio,阈值0.90/1.30) / `put_call_equity.py`(equity ratio,阈值0.55/0.85),`put_call_total` 从波动率迁到期权情绪;风险权重重平衡为 曲线18/信用18/流动性13/波动率10/期权情绪8/跨市场13/政策10/中国10;真实写入主 DB total=0.93,index=1.03,equity=0.59;pytest 520→522
 - [x] (2026-05-18) iter 63：1970s/1929 老历史数据接口调研 — 输出 `data/backtest_results/OLD_HISTORY_SOURCES.md`。结论:1970s 可用 FRED 代理完整做(DGS10/TB3MS/DTB3/AAA/BAA/FEDFUNDS/CPI/INDPRO/UNRATE/M1/M2/OILPRICE);1929 只能月频代理(Shiller/DataHub s-and-p-500 CSV + FRED AAA/BAA/INDPRO),若要 DJIA 日频需用户人工取 MeasuringWorth 数据;old-history 应单独做 monthly old-risk score,不混入现有日频综合分
 - [x] (2026-05-18) iter 64：修复首页环型温度计读取过期 risk_scores 快照 — `/` 首页从 `rs.get_latest_risk_score(conn)` 改为 `rs.compute_score(conn,_INDICATOR_REGISTRY)` 实时计算,`risk_scores` 保留给 `/timeline`;新增 web 测试覆盖旧快照 + 最新 RED 指标场景。当前实时 breakdown:波动率100/期权情绪50/曲线0/信用0/流动性50/跨市场100/政策100/中国100;曲线和信用 0 属于当前 GREEN 正常。pytest 523
-- [ ] iter 65：月频 old-history 回测引擎骨架（Shiller/DataHub + FRED AAA/BAA/INDPRO/CPI）
+- [x] (2026-05-18) iter 65：隐藏首页“今日风险简报”卡片 — `templates/index.html` 移除 briefing 卡片渲染,保留右下角 AI 助手浮窗;后端 briefing 表/生成逻辑保留。验证首页 `今日风险简报` count=0 / `风险助手` count=1;pytest 523
+- [ ] iter 66：月频 old-history 回测引擎骨架（Shiller/DataHub + FRED AAA/BAA/INDPRO/CPI）
 
 **暂搁**（不在路线图，待评估）：
 - 美元互换基差（USD basis swap）— 无免费源

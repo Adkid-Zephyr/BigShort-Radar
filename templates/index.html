@@ -73,16 +73,7 @@
     </div>
   {% endif %}
 
-  {% if briefing %}
-    <div class="briefing">
-      <h2>
-        今日风险简报
-        <span class="b-date">{{ briefing.date }}</span>
-        {% if briefing.model %}<span class="b-model">{{ briefing.model }}</span>{% endif %}
-      </h2>
-      <p>{{ briefing.content }}</p>
-    </div>
-  {% endif %}
+  {# iter 65:隐藏今日风险简报。右下角 chatbot 浮窗仍保留。 #}
 
   {% if groups %}
     <div class="indicator-grid">

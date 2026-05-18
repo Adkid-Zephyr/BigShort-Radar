@@ -32,3 +32,4 @@ iter 61 | 2026-05-18 13:55 | ec14cc6 | tests 520/520 | VVIX/SKEW 从 yahoo 切 C
 iter 62 | 2026-05-18 14:50 | f6794aa | tests 522/522 | 新增期权情绪维度;Put/Call 拆 total/index/equity;权重重平衡为18/18/13/10/8/13/10/10
 iter 63 | 2026-05-18 15:10 | 854644d | tests 522/522 | 老历史数据源调研:1970s 可用 FRED 代理,1929 只能月频 Shiller/DataHub+FRED;DJIA 日频需用户人工取
 iter 64 | 2026-05-18 15:25 | 9eb1609 | tests 523/523 | 修复首页环型温度计 stale:首页改实时 compute_score,不再读 risk_scores 旧快照;当前波动率=100,信用/曲线=0属GREEN正常
+iter 65 | 2026-05-18 15:45 | 414fcd7 | tests 523/523 | 隐藏首页今日风险简报卡片,保留右下角AI助手;首页briefing count=0/chat count=1

@@ -84,7 +84,9 @@
 >
 > **iter 63 实时基线（2026-05-18）**：pytest 522/0/0;老历史数据源调研完成,见 `data/backtest_results/OLD_HISTORY_SOURCES.md`。1970s 可用 FRED 直接做代理回测;1929 只能月频代理(Shiller/DataHub + FRED AAA/BAA/INDPRO),DJIA 日频需用户人工取 MeasuringWorth。
 >
-> **iter 64 实时基线（2026-05-18）**：pytest 523/0/0;首页环型温度计改实时计算 latest 指标,不再读 `risk_scores` 旧快照。当前实时 breakdown:波动率100/期权情绪50/曲线0/信用0/流动性50/跨市场100/政策100/中国100;曲线和信用 0 是当前 GREEN 正常。下一轮建议做月频 old-history 回测引擎骨架。
+> **iter 64 实时基线（2026-05-18）**：pytest 523/0/0;首页环型温度计改实时计算 latest 指标,不再读 `risk_scores` 旧快照。当前实时 breakdown:波动率100/期权情绪50/曲线0/信用0/流动性50/跨市场100/政策100/中国100;曲线和信用 0 是当前 GREEN 正常。
+>
+> **iter 65 实时基线（2026-05-18）**：pytest 523/0/0;首页隐藏“今日风险简报”卡片,保留右下角 AI 助手浮窗。下一轮建议做月频 old-history 回测引擎骨架。
 - launchd：每天北京 05:30 自动跑（已加载 `~/Library/LaunchAgents/com.financeradar.daily.plist`）
 - 当前下一项 PLAN：按 `THESIS.md` §6 列出的优先级走（历史回测 → 算法升级 → 融资市场维度补缺 → 政策反应维度新增）
 
