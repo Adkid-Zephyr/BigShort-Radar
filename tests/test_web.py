@@ -109,6 +109,30 @@ def test_index_red_level_color(client, db_path):
     assert "38.00" in body
 
 
+def test_index_gauge_uses_live_risk_not_stale_snapshot(db_path, history_db_path):
+    """首页温度计应实时按 latest 指标重算,不能读 risk_scores 旧快照。"""
+    from src.compute import risk_score as rs
+
+    with dbmod.open_db(db_path) as conn:
+        # 写一个过期的全 GREEN risk_scores 快照
+        rs.upsert_risk_score(conn, "2026-05-14", {
+            "score": 0.0,
+            "level": "GREEN",
+            "breakdown": {"波动率": {"score": 0.0, "weight": 10.0, "indicators": []}},
+            "missing": [],
+        })
+        # 但最新 VIX 已经 RED
+        dbmod.upsert_indicator(conn, vix_ind.NAME, "2026-05-15", 38.0, "YF:^VIX")
+
+    app = create_app(db_path=db_path, history_db_path=history_db_path)
+    app.config["TESTING"] = True
+    with app.test_client() as c:
+        body = c.get("/").get_data(as_text=True)
+    assert "38.00" in body
+    assert "RED" in body
+    assert "波动率" in body and "100 ×10%" in body
+
+
 # ── 分组（iter 26） ──────────────────────────────────────────
 def test_index_renders_group_headers(client):
     """页面应当有"波动率/信用/曲线/流动性"分组标题。"""

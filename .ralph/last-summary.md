@@ -1,68 +1,70 @@
 # 上一轮总结
 
-迭代 63(2026-05-18):1970s/1929 老历史数据源调研。
+迭代 64(2026-05-18):修复首页环型温度计读取过期 risk_scores 快照的问题。
+
+## 用户反馈
+
+用户看到环型温度计里“波动率 / 信用 / 曲线”都是 0,怀疑有问题。
+
+## 排查结论
+
+- **波动率=0 是问题**：首页读的是 `risk_scores` 表旧快照(2026-05-17,score=26.33,波动率=0),而 iter 58-62 补入的 VIX/VIX term/VIX9D/VIX1Y/VVIX/SKEW/PutCall 没有触发重新写 risk_scores。
+- **信用=0 正常**：HY OAS=2.76、IG OAS=0.76,都 GREEN。
+- **曲线=0 正常**：10Y-2Y=0.5、10Y-3M=0.9,按当前阈值都 GREEN。
+
+实时计算结果:
+
+```text
+score=53.5 YELLOW
+波动率=100
+期权情绪=50
+曲线=0
+信用=0
+流动性=50
+跨市场=100
+政策=100
+中国=100
+```
 
 ## 本轮做了
 
-### A. 输出调研文档
+### A. 首页温度计改实时计算
 
-新增 `data/backtest_results/OLD_HISTORY_SOURCES.md`。
+`src/web/app.py` 首页 `/`:
 
-### B. 1970s 结论
+- 旧: `risk = rs.get_latest_risk_score(conn)`
+- 新: `risk = rs.compute_score(conn, _INDICATOR_REGISTRY)`
 
-1970s 可以做,且主要靠 FRED 足够:
+并补 `risk["date"]` 为当前 latest 指标最大日期。
 
-- DGS10(1962 日)
-- TB3MS(1934 月)
-- DTB3(1954 日)
-- AAA / BAA(1919 月)
-- FEDFUNDS(1954 月)
-- CPIAUCSL(1947 月)
-- INDPRO(1919 月)
-- UNRATE(1948 月)
-- M1/M2(1959 月)
-- OILPRICE(1946 月,discontinued 但历史可用)
+`risk_scores` 表继续保留给 `/timeline` 历史页使用。
 
-推荐窗口:
-- 1968-1970
-- 1973-1975
-- 1978-1982
+### B. 测试覆盖 stale 场景
 
-### C. 1929 结论
+新增 `tests/test_web.py::test_index_gauge_uses_live_risk_not_stale_snapshot`:
 
-1929 不应硬跑现代 22 条指标,只能做月频代理:
+- 先写一个旧的全 GREEN risk_scores 快照
+- 再写最新 VIX RED
+- 断言首页出现 RED + 波动率 100,证明不读旧快照
 
-- DataHub/Shiller `s-and-p-500` CSV(1871 月,SP500/Dividend/Earnings/CPI/Long Interest Rate/CAPE)
-- FRED AAA/BAA(1919 月)算 Baa-Aaa 信用利差
-- FRED INDPRO(1919 月)看经济下行
+### C. 测试
 
-若要 DJIA 日频 1929:
-- MeasuringWorth DJA 页面有 1885/1896+ 日收盘
-- 但无稳定 CSV/API
-- 需要用户人工导出或确认是否允许写表单爬取
-
-### D. 决策
-
-old-history 不应混入现有日频综合温度计,应单独做 `monthly old-risk score`,避免伪精确。
-
-### E. 测试
-
-pytest 522/522 通过。本轮纯文档/调研,没有代码变更。
+pytest 522 → 523 全过。
 
 ## 本轮客观自我评价
 
-**对 vision 的贡献度**:⭐⭐⭐⭐
-- 监控金融危机维度:明确 1970s/1929 真实可用数据边界,避免为了回测而造假精度。
-- 为大空头交易做准备维度:能把危机剧本从 2008/2020/2022 扩展到 1970s/1929,但必须诚实用代理。
+**对 vision 的贡献度**:⭐⭐⭐⭐⭐
+- 监控金融危机维度:温度计是系统第一读数,读旧快照会直接误导风险判断。
+- 为大空头交易做准备维度:波动率组目前 SKEW RED/VVIX YELLOW/VIX1Y YELLOW,如果温度计仍显示 0,会错过尾部风险。
 
 **有没有跑偏**:
-- 没跑偏。调研不是堆指标,是为历史校准打基础。
+- 没跑偏。这是产品正确性修复,优先级高于继续加指标。
 
 **坦率失误 / 妥协**:
-- 本轮没有实现代码,只完成调研。1929 日频需要用户人工数据,无法自动解决。
-- 如果用户坚持日频 1929,需要后续明确授权抓 MeasuringWorth 或找付费/公开 CSV。
+- 前几轮手动补数据后没有同步重算 risk_scores,导致 dashboard gauge stale。根因是首页依赖存储快照,而不是实时 latest。
+- `/timeline` 仍依赖 risk_scores 历史,这没问题;但以后若要 timeline 也最新,应在 daily_fetch 后统一 run_and_store。
 
 **下一轮真正该做的**:
-- iter 64:月频 old-history 回测引擎骨架。先接 DataHub/Shiller CSV + FRED AAA/BAA/INDPRO/CPI,跑 1928-1933 月频代理,输出 OLD_HISTORY_SUMMARY.md。
+- iter 65 回到原计划:月频 old-history 回测引擎骨架(Shiller/DataHub + FRED AAA/BAA/INDPRO/CPI)。
 
-git iter 62 d6ffbea → 63 待 commit
+git iter 63 f590af6 → 64 待 commit

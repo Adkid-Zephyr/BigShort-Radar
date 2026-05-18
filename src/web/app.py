@@ -605,7 +605,11 @@ def create_app(db_path=None, history_db_path=None) -> Flask:
         with dbmod.open_db(target) as conn:
             rows = _build_rows(conn, history_db_path=hist_target)
             briefing = bf.get_latest_briefing(conn)
-            risk = rs.get_latest_risk_score(conn)
+            # Dashboard 顶部温度计必须反映当前 latest 指标，而不是 risk_scores 表里可能过期的快照。
+            # risk_scores 仍用于 /timeline 历史页；首页用实时计算避免手动补数据后 breakdown stale。
+            risk = rs.compute_score(conn, _INDICATOR_REGISTRY)
+            dated_rows = [r for r in rows if r.get("date")]
+            risk["date"] = max(r["date"] for r in dated_rows) if dated_rows else "实时"
             # 评估 5 剧本
             indicator_states = {}
             for ind in _INDICATOR_REGISTRY:
