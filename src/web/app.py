@@ -77,7 +77,7 @@ _INDICATOR_REGISTRY: List[Dict[str, Any]] = [
         "threshold_low": vix_ind.THRESHOLD_LOW,
         "threshold_high": vix_ind.THRESHOLD_HIGH,
         "direction": vix_ind.DIRECTION,
-        # source = YF:^VIX，自动推导 → 不写 source_url
+        # source = FRED:VIXCLS，自动推导 → 不写 source_url
     },
     {
         "name": vts_ind.NAME,

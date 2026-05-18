@@ -77,7 +77,9 @@ def test_loop_prompt_mentions_visual_check() -> None:
     assert "visual_check" in prompt, "loop_prompt.md should reference visual_check"
 
 
-def test_gitignore_does_not_track_visual_artifacts() -> None:
-    """.ralph/visual_check_iter*/ 是大量截图，不应进 git"""
+def test_gitignore_keeps_runtime_secrets_out() -> None:
+    """仓库已转 private 后允许同步截图/数据库,但 key 与运行日志仍不能进 git。"""
     gitignore = (ROOT / ".gitignore").read_text()
-    assert "visual_check_iter" in gitignore, ".gitignore should ignore visual_check_iter*/"
+    assert ".env" in gitignore, ".env must stay ignored"
+    assert ".ralph/.token" in gitignore, "GitHub token must stay ignored"
+    assert ".ralph/loop_runs.log" in gitignore, "loop runtime log should stay ignored"

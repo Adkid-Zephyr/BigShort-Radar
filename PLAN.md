@@ -107,8 +107,9 @@
 - [x] (2026-05-17) iter 55：前端美化（taste-skill 规范，深色精细化）— `_base.html` `<style>` 重写引入 CSS 变量系统（zinc-950 起调 + Geist 字体 CDN + liquid-glass shadow + 大 radius 12-20px）；scenarios-grid 改 Bento 非对称（A 美元荒占两行大卡）；plotly 三个 .py 配色同步（`#09090b` BG + `#f4f4f5` 文本）；chatbot 浮窗统一 accent `#60a5fa`；保留所有 class 名（pytest 仍 492 全过）。视觉等级：克制深色 + 玻璃质感 + Geist 单一 sans-serif
 - [x] (2026-05-17) iter 56：前端二次美化（信息驾驶舱方向）— Bento `scenarios-grid` 改 5 列单排（A 大卡 1.6fr / B-E 各 1fr）消除右下空白；7 维度组改 `.indicator-grid` 2 列网格 + 卡片化；表格密度提升（padding 11→8 / 字号 13→12 / 列宽收紧）；max-width 1400→1280。`.gauge` 从横排文字改 SVG 圆环 cockpit（200×200 r=84 / 270° 弧 + 90° 底部缺口 / drop-shadow glow / 中央 56px Geist Mono 大数字 + 等级 label）+ 右栏 7 维度径向条（dot + 名 + 5px bar + score×weight%）。校准页三列 % → 240×16 stacked bar 单根 + verdict 行染色。pytest 仍 492。截图归档 `.ralph/visual_iter56/`
 - [x] (2026-05-17) iter 57：阈值校准（cache DB 派生现场计算 + 维度内最严 max + 切点 65→60）— `src/backtest/derived.py` 注册 vix_term_structure / sofr_iorb / fra_ois 成分公式;`backtest/score.py` 派生 fallback;`backfill_history` 加 vix3m/sofr_raw/iorb_raw/dgs3mo 4 条原料(FRED 三条入库 2027/1755/5096,VIX3M 仍受 yahoo 限速);`risk_score.py` group_score=max + SCORE_RED_MIN 60.0。三窗口重跑:2008 雷曼 RED 0→33(6%) / COVID 0→42(8.6%) / 2022 加息 39→393(72%)。pytest 492→504。SUMMARY.md 重新生成
-- [ ] iter 58：用户协助补齐期权交易者视角缺口（沪深 300 / 上证 50 / 纳指 / 美七姐妹 IV / Skew / Term / GEX / Put-Call Ratio / 北向南向）— 见 `.ralph/iter57_postmortem_pending.md` 候选清单
-- [ ] iter 59：1970s/1929 老历史数据接口调研（用户人工取）
+- [x] (2026-05-18) iter 58：VIX 主流程切 FRED:VIXCLS — `src/compute/indicators/vix.py` 从 yfinance `^VIX` 切到 FRED `VIXCLS`,阈值不变;`tests/test_vix.py` 改 mock fred_client + 加 `test_source_is_fred` 防回退 yahoo;真实 FRED fetch 写入主 DB 10 条,latest 2026-05-14 17.26 source=FRED:VIXCLS;pytest 505 通过。目的:修复主 dashboard VIX 因 yahoo 限速长期"积累中"空白
+- [ ] iter 59：用户协助补齐期权交易者视角缺口（沪深 300 / 上证 50 / 纳指 / 美七姐妹 IV / Skew / Term / GEX / Put-Call Ratio / 北向南向）— 见 `.ralph/iter57_postmortem_pending.md` 候选清单
+- [ ] iter 60：1970s/1929 老历史数据接口调研（用户人工取）
 
 **暂搁**（不在路线图，待评估）：
 - 美元互换基差（USD basis swap）— 无免费源

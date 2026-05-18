@@ -1,4 +1,7 @@
-"""VIX 指标测试：mock yf_client，覆盖分类 + fetch+store 全流程。"""
+"""VIX 指标测试：mock fred_client，覆盖分类 + fetch+store 全流程。
+
+iter 58 起 VIX 主流程切 FRED:VIXCLS（绕开 yahoo 限速），mock 目标从 yf_client 改 fred_client。
+"""
 from __future__ import annotations
 
 import pytest
@@ -31,6 +34,13 @@ def test_classify_high_is_red():
     assert vixmod.classify_value(45.0) == Level.RED
 
 
+# ── 模块常量校验（防回退到 yahoo）─────────────────────────────
+def test_source_is_fred():
+    """iter 58：VIX 主流程已切 FRED:VIXCLS，不再走 yahoo。"""
+    assert vixmod.SOURCE == "FRED:VIXCLS"
+    assert vixmod.SERIES_ID == "VIXCLS"
+
+
 # ── fetch_and_store ──────────────────────────────────────────
 @pytest.fixture()
 def conn(tmp_path):
@@ -40,17 +50,17 @@ def conn(tmp_path):
 
 
 def _mock_series(monkeypatch, dates_values):
-    """构造 pandas.Series 替代 yf_client.fetch_close 的返回。"""
+    """构造 pandas.Series 替代 fred_client.fetch_series 的返回。"""
     pd = pytest.importorskip("pandas")
     idx = pd.to_datetime([d for d, _ in dates_values])
     vals = [v for _, v in dates_values]
-    s = pd.Series(vals, index=idx, name="close")
+    s = pd.Series(vals, index=idx, name="value")
 
-    def fake_fetch_close(ticker, start, end=None):
-        assert ticker == "^VIX"
+    def fake_fetch_series(series_id, start, end=None, settings=None):
+        assert series_id == "VIXCLS"
         return s
 
-    monkeypatch.setattr(vixmod.yf_client, "fetch_close", fake_fetch_close)
+    monkeypatch.setattr(vixmod.fred_client, "fetch_series", fake_fetch_series)
 
 
 def test_fetch_and_store_writes_rows(conn, monkeypatch):
@@ -67,12 +77,12 @@ def test_fetch_and_store_writes_rows(conn, monkeypatch):
     by_date = {r["date"]: r for r in rows}
     assert by_date["2026-05-13"]["value"] == pytest.approx(17.5)
     assert by_date["2026-05-15"]["value"] == pytest.approx(33.0)
-    assert by_date["2026-05-15"]["source"] == "YF:^VIX"
+    assert by_date["2026-05-15"]["source"] == "FRED:VIXCLS"
 
 
 def test_fetch_and_store_returns_zero_on_empty(conn, monkeypatch):
-    monkeypatch.setattr(vixmod.yf_client, "fetch_close",
-                        lambda ticker, start, end=None: None)
+    monkeypatch.setattr(vixmod.fred_client, "fetch_series",
+                        lambda series_id, start, end=None, settings=None: None)
     n = vixmod.fetch_and_store(conn, start="2026-05-13")
     assert n == 0
     assert dbmod.get_series(conn, "vix") == []
@@ -95,8 +105,8 @@ def test_fetch_and_store_skips_non_numeric(conn, monkeypatch):
     idx = pd.to_datetime(["2026-05-14", "2026-05-15"])
     s = pd.Series([float("nan"), 18.0], index=idx, name="close")
 
-    monkeypatch.setattr(vixmod.yf_client, "fetch_close",
-                        lambda ticker, start, end=None: s)
+    monkeypatch.setattr(vixmod.fred_client, "fetch_series",
+                        lambda series_id, start, end=None, settings=None: s)
     n = vixmod.fetch_and_store(conn, start="2026-05-14")
     # NaN 被跳过；18.0 入库
     rows = dbmod.get_series(conn, "vix")
