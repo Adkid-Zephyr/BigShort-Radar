@@ -26,3 +26,4 @@ iter 55 | 2026-05-18 00:38 | 77f51ce | tests 492/492 | 前端美化（taste-skil
 iter 56 | 2026-05-18 01:28 | 65579c4 | tests 492/492 | 前端二次美化（信息驾驶舱）：Bento 5 列单排 + 7 维度 2 列网格 + 表格密度提升 + SVG 圆环 cockpit gauge + 校准 stacked bar
 iter 57 | 2026-05-18 02:05 | dc17be7 | tests 504/504 | 阈值校准:派生指标现场计算(derived.py)+维度 max 触顶+切点 65→60。三窗口重跑 2008/COVID/2022 RED 33/42/393 天
 iter 58 | 2026-05-18 12:15 | 7786fd2 | tests 505/505 | VIX 主流程切 FRED:VIXCLS,修复 yahoo 限速导致核心波动率指标 dashboard 空白;真实入主 DB 10 条 latest=2026-05-14 17.26
+iter 59 | 2026-05-18 12:40 | 834514b | tests 506/506 | VIX 期限结构切 FRED:VIXCLS/VXVCLS + 主 DB 回填 VIX 1629 条/VTS 1600 条;删除错误 VIX9D/VIX1Y 草稿

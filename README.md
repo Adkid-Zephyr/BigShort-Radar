@@ -127,7 +127,7 @@ LLM         briefing        get_latest) dashboard
 | 维度 | 指标 | 数据源 | 方向 | GREEN | YELLOW | RED |
 |---|---|---|---|---|---|---|
 | 波动率 | VIX | FRED `VIXCLS` | up | < 20 | 20–30 | > 30 |
-| 波动率 | VIX 期限结构（VIX/VIX3M） | YF `^VIX`÷`^VIX3M` | up | < 0.95 | 0.95–1.0 | > 1.0 |
+| 波动率 | VIX 期限结构（VIX/VIX3M） | FRED `VIXCLS`÷`VXVCLS` | up | < 0.95 | 0.95–1.0 | > 1.0 |
 | 曲线 | 10Y-2Y | FRED `T10Y2Y` | down | > 0.5 | 0–0.5 | < 0 |
 | 曲线 | 10Y-3M | FRED `T10Y3M` | down | > 0.5 | 0–0.5 | < 0 |
 | 信用 | HY OAS | FRED `BAMLH0A0HYM2` | up | < 4 | 4–8 | > 8 |
@@ -308,6 +308,8 @@ tests/             484 用例
 **iter 57 阈值校准**:派生指标 vix_term_structure / sofr_iorb / fra_ois 在回测时用底层成分现场计算(消除三窗口 100% missing);维度内 max 触顶(任一指标 RED → 维度 100,解决"少数指标 RED 但综合分被稀释"盲区);总分切点 65→60。三窗口重跑:2008 雷曼 RED 33 天 / COVID 42 天 / 2022 加息 393 天(过去仅 0/0/39)。pytest 504。
 
 **iter 58 数据源稳定性修复**:VIX 主流程从 yahoo `^VIX` 切到 FRED `VIXCLS`,修复 dashboard 核心波动率指标因 yahoo 限速长期"积累中"问题。真实写入主 DB 10 条,pytest 505。
+
+**iter 59 期限结构补齐**:VIX 期限结构从 yahoo `^VIX/^VIX3M` 切到 FRED `VIXCLS/VXVCLS`,主 DB 回填 VIX 1629 条 / VIX 期限结构 1600 条,修复波动率期限结构空白。pytest 506。
 
 ## 技术栈
 

@@ -81,9 +81,9 @@
 
 ### vix_term_structure
 - **代码**：vix_term_structure
-- **数据源**：YF:^VIX / YF:^VIX3M（取比值）
+- **数据源**：FRED:VIXCLS / FRED:VXVCLS（取比值）
 - **更新频率**：日
-- **计算口径**：value = VIX_close / VIX3M_close（按交易日对齐）
+- **计算口径**：value = VIXCLS / VXVCLS（按交易日对齐）
 - **阈值**（方向：↑ 升=风险升）
   - GREEN：< 0.95（contango，平静）
   - YELLOW：0.95 – 1.0（紧张）

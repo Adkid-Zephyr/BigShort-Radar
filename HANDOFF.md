@@ -72,7 +72,9 @@
 >
 > **iter 57 实时基线（2026-05-17）**：pytest 504/0/0;阈值校准三件套完成 — 派生指标回测现场计算(`src/backtest/derived.py`),维度内 max 触顶,切点 65→60。三窗口重跑 2008/COVID/2022 RED 天数 33/42/393。SUMMARY.md 重新生成。
 >
-> **iter 58 实时基线（2026-05-18）**：pytest 505/0/0;VIX 主流程从 yahoo `^VIX` 切 FRED `VIXCLS`,修复 dashboard 核心波动率指标受 yahoo 限速导致"积累中"的问题。真实 FRED 写入主 DB 10 条,latest 2026-05-14 17.26。下一轮(iter 59)继续期权交易者视角缺口补齐,优先 VIX3M→FRED:VXVCLS + VIX9D/VIX1Y 或 CBOE Put/Call Ratio。
+> **iter 58 实时基线（2026-05-18）**：pytest 505/0/0;VIX 主流程从 yahoo `^VIX` 切 FRED `VIXCLS`,修复 dashboard 核心波动率指标受 yahoo 限速导致"积累中"的问题。真实 FRED 写入主 DB 10 条,latest 2026-05-14 17.26。
+>
+> **iter 59 实时基线（2026-05-18）**：pytest 506/0/0;VIX 期限结构从 yahoo `^VIX/^VIX3M` 切 FRED `VIXCLS/VXVCLS`,主 DB 回填 VIX 1629 条 / 期限结构 1600 条,latest ratio=0.8278。FRED `VXSTCLS`/`VXMTCLS` 不存在,已删除错误 vix9d/vix1y 草稿,下一轮优先 CBOE Put/Call Ratio 或官方 VIX9D/VIX1Y CSV 源调研。
 - launchd：每天北京 05:30 自动跑（已加载 `~/Library/LaunchAgents/com.financeradar.daily.plist`）
 - 当前下一项 PLAN：按 `THESIS.md` §6 列出的优先级走（历史回测 → 算法升级 → 融资市场维度补缺 → 政策反应维度新增）
 

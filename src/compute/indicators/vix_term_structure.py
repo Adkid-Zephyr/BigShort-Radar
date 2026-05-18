@@ -6,10 +6,15 @@
 - 比值 > 1（backwardation）：近月恐慌定价 > 远月 → 危机临近
 
 数据源：
-  yfinance ^VIX（CBOE Volatility Index，30 天预期波动率）
-  yfinance ^VIX3M（CBOE 3-Month Volatility Index）
-计算：value = VIX_close / VIX3M_close（按交易日对齐）
+  FRED:VIXCLS（CBOE Volatility Index，30 天预期波动率）
+  FRED:VXVCLS（CBOE 3-Month Volatility Index）
+计算：value = VIXCLS / VXVCLS（按交易日对齐）
 方向：up（值越高越危险）
+
+切源历史：
+  iter 1-58 走 yfinance ^VIX/^VIX3M。yahoo 严限速,主 dashboard 长期"积累中"。
+  iter 59 切 FRED:VIXCLS / FRED:VXVCLS,与 iter 58 VIX 主指标同源,稳定。
+  阈值不变。
 
 阈值（DECISIONS.md 2026-05-15 ADR）：
   GREEN  < 0.95   contango，平静
@@ -17,7 +22,7 @@
   RED    > 1.0    倒挂，危机临近（2008、2020 春、2022 多次）
 
 写库 schema：
-  name="vix_term_structure", date=YYYY-MM-DD, value=比值, source="YF:^VIX/^VIX3M"
+  name="vix_term_structure", date=YYYY-MM-DD, value=比值, source="FRED:VIXCLS/VXVCLS"
 """
 from __future__ import annotations
 
@@ -25,16 +30,16 @@ import sqlite3
 from typing import Any, Optional
 
 from src.compute.thresholds import Level, classify
-from src.fetch import yf_client
+from src.fetch import fred_client
 from src.store import db as dbmod
 from src.utils.logger import get_logger
 
 log = get_logger(__name__)
 
 NAME = "vix_term_structure"
-TICKER_FRONT = "^VIX"
-TICKER_BACK = "^VIX3M"
-SOURCE = "YF:^VIX/^VIX3M"
+SERIES_FRONT = "VIXCLS"
+SERIES_BACK = "VXVCLS"
+SOURCE = "FRED:VIXCLS/VXVCLS"
 DIRECTION = "up"
 
 # 阈值常量（与 INDICATORS.md 一致）
@@ -92,7 +97,7 @@ def fetch_and_store(
     异常：
         不抛；任一条 fetch 失败 → 返回 0
     """
-    front = yf_client.fetch_close(TICKER_FRONT, start=start, end=end)
-    back = yf_client.fetch_close(TICKER_BACK, start=start, end=end)
+    front = fred_client.fetch_series(SERIES_FRONT, start=start, end=end)
+    back = fred_client.fetch_series(SERIES_BACK, start=start, end=end)
     ratio = _compute_ratio(front, back)
     return dbmod.upsert_series_from_pandas(conn, name=NAME, source=SOURCE, series=ratio)

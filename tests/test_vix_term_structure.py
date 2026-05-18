@@ -1,4 +1,7 @@
-"""vix_term_structure 测试：mock yf_client 的两次调用，覆盖对齐 + 比值计算 + 入库。"""
+"""vix_term_structure 测试：mock fred_client 的两次调用，覆盖对齐 + 比值计算 + 入库。
+
+iter 59 起 VIX 期限结构从 yahoo ^VIX/^VIX3M 切到 FRED VIXCLS/VXVCLS。
+"""
 from __future__ import annotations
 
 import pytest
@@ -75,6 +78,13 @@ def test_compute_ratio_filters_zero_back():
     assert len(r) == 1
 
 
+# ── 模块常量校验（防回退到 yahoo）─────────────────────────────
+def test_source_is_fred():
+    assert vtsmod.SOURCE == "FRED:VIXCLS/VXVCLS"
+    assert vtsmod.SERIES_FRONT == "VIXCLS"
+    assert vtsmod.SERIES_BACK == "VXVCLS"
+
+
 # ── fetch_and_store ──────────────────────────────────────────
 @pytest.fixture()
 def conn(tmp_path):
@@ -87,24 +97,24 @@ def test_fetch_and_store_writes_ratio_rows(conn, monkeypatch):
     front = _series([("2026-05-13", 18.0), ("2026-05-14", 21.0)])
     back = _series([("2026-05-13", 20.0), ("2026-05-14", 21.0)])
 
-    def fake_fetch_close(ticker, start, end=None):
-        return {"^VIX": front, "^VIX3M": back}[ticker]
+    def fake_fetch_series(series_id, start, end=None, settings=None):
+        return {"VIXCLS": front, "VXVCLS": back}[series_id]
 
-    monkeypatch.setattr(vtsmod.yf_client, "fetch_close", fake_fetch_close)
+    monkeypatch.setattr(vtsmod.fred_client, "fetch_series", fake_fetch_series)
     n = vtsmod.fetch_and_store(conn, start="2026-05-13")
     assert n == 2
     rows = dbmod.get_series(conn, "vix_term_structure")
     assert len(rows) == 2
     assert pytest.approx(rows[0]["value"]) == 0.9
     assert pytest.approx(rows[1]["value"]) == 1.0
-    assert rows[0]["source"] == "YF:^VIX/^VIX3M"
+    assert rows[0]["source"] == "FRED:VIXCLS/VXVCLS"
 
 
 def test_fetch_and_store_returns_zero_when_either_fail(conn, monkeypatch):
-    def fake_fetch_close(ticker, start, end=None):
-        return None  # 模拟 ^VIX3M 拉不到
+    def fake_fetch_series(series_id, start, end=None, settings=None):
+        return None  # 模拟 VXVCLS 拉不到
 
-    monkeypatch.setattr(vtsmod.yf_client, "fetch_close", fake_fetch_close)
+    monkeypatch.setattr(vtsmod.fred_client, "fetch_series", fake_fetch_series)
     n = vtsmod.fetch_and_store(conn, start="2026-05-13")
     assert n == 0
     assert dbmod.get_series(conn, "vix_term_structure") == []
