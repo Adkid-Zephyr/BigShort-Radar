@@ -1,13 +1,93 @@
 # BigShort Radar
 
-[![tests](https://img.shields.io/badge/tests-484%20passed-brightgreen)](#测试)
+[![tests](https://img.shields.io/badge/tests-504%20passed-brightgreen)](#测试)
 [![python](https://img.shields.io/badge/python-3.9%2B-blue)](#技术栈)
 [![license](https://img.shields.io/badge/license-CC%20BY--NC%204.0-orange)](./LICENSE)
 
-本地金融风险监控系统。每天从 FRED / Yahoo Finance 拉 10 条宏观与市场指标，按预设阈值分档，五维加权生成 0–100 综合分，可选调用 LLM 出中文简报。
-作者用它对抗自己的情绪化判断 —— 看历史 10 条指标，比看朋友圈靠谱。
+本地金融风险监控系统。每天从 FRED / Yahoo Finance 拉 19 条宏观与市场指标，按预设阈值分档，七维加权生成 0–100 综合分，可选调用 LLM 出中文简报。
+作者用它对抗自己的情绪化判断 —— 看历史指标，比看朋友圈靠谱。
 
-完整投资论点见 [`THESIS_PUBLIC.md`](./THESIS_PUBLIC.md)。**本项目不构成投资建议**，详见 [免责声明](#免责声明)。
+完整投资论点见 [`THESIS_PUBLIC.md`](./THESIS_PUBLIC.md)（脱敏版）/ [`THESIS.md`](./THESIS.md)（私人版,private 仓库才有）。
+**本项目不构成投资建议**，详见 [免责声明](#免责声明)。
+
+---
+
+## 🚀 新机快速上手(给接手者 / 给 AI 助手看)
+
+**只需 GitHub 链接,就能让新机 + AI 自动配好。** AI 助手读完本节即知道要做什么、要找用户拿什么 key。
+
+### Step 1 — clone + 看交接手册
+
+```bash
+git clone git@github.com:Adkid-Zephyr/BigShort-Radar.git finance-radar
+cd finance-radar
+```
+
+接着按顺序读完(15 分钟):
+1. [`TAKEOVER.md`](./TAKEOVER.md) — 30 秒上下文 + 用户对未来方向的明确表达
+2. `THESIS_PUBLIC.md` — 第一原则
+3. `PROMPT.md` — 工作宪法
+4. `.ralph/last-summary.md` — 上一轮做了什么
+
+### Step 2 — Key 清单(找用户拿)
+
+| Key | 必填? | 用途 | 申请链接 | 不填会怎样 |
+|---|---|---|---|---|
+| `FRED_API_KEY` | **必填** | 拉 19 条指标里的 14 条(主力数据源) | https://fred.stlouisfed.org/docs/api/api_key.html (免费,1 分钟,只需注册邮箱) | 主流程几乎全废 |
+| `DASHSCOPE_API_KEY` | 可选 | LLM 风险简报 + dashboard chatbot | https://bailian.console.aliyun.com/ (国内,需实名,有免费额度) | 简报 + chatbot 显示"未配置",其他不受影响 |
+| GitHub PAT | 可选 | ralph_loop.sh 自动 push | GitHub Settings → Developer Settings → Personal access tokens(勾 `repo` scope) | ralph loop 跑完不会自动 push,需手动 push |
+
+**AI 助手提示**:如果用户没现成的 FRED key,**直接告诉用户去申请,不要自己想办法绕开**。FRED 注册免费且 1 分钟搞定,这是项目主数据源,绕不过。
+
+### Step 3 — 二选一:Docker 路径 / 传统 venv 路径
+
+#### 路径 A: Docker(推荐 - 跨平台一致)
+
+```bash
+cp .env.example .env
+# 编辑 .env,填入 Step 2 拿到的 FRED_API_KEY(其他可空)
+
+docker-compose up -d                  # 启动 Flask,访问 http://localhost:5050
+docker-compose logs -f radar          # 看日志
+
+# 拉每日数据(主流程)
+docker-compose run --rm radar python -m scripts.daily_fetch
+
+# 回填历史(首次启动后)
+docker-compose run --rm radar python -m scripts.backfill_history --start 2020-01-01
+
+# 跑回测三窗口
+docker-compose run --rm radar python -m src.backtest.engine --start 2008-01-01 --end 2009-06-30 --out data/backtest_results/lehman_2008.csv
+```
+
+#### 路径 B: 传统 venv(本机 Python 3.9.6)
+
+```bash
+cp .env.example .env
+# 编辑 .env
+
+python3.9 -m venv .venv               # 或 pyenv install 3.9.6 后 python -m venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# 启 Flask
+python -m flask --app src.web.app run --host 127.0.0.1 --port 5050
+
+# 跑 pytest 验证
+python -m pytest -q                    # 期望 504 passed
+```
+
+### Step 4 — 数据现状(已 push,clone 后立刻可用)
+
+仓库附带:
+- `data/finance_radar.sqlite` — 主 DB(daily_fetch 累积)
+- `data/historical_cache.sqlite` — 历史 cache(2006-2024,38059+ 条)
+- `data/radar.sqlite` — 综合分历史
+- `data/backtest_results/*.csv` — 三窗口回测结果(2008/COVID/2022)
+- `THESIS.md` — 私人投资论点
+- `.ralph/visual_iter56/` — iter 56 前端美化截图归档
+
+clone 后**不用立刻**跑 backfill,数据已经在 git 里。但建议跑一次 `daily_fetch` 拿当天最新数据。
 
 ---
 

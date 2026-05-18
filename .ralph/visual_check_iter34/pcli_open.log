@@ -1,0 +1,16 @@
+/Users/lau/.nvm/versions/node/v20.20.2/lib/node_modules/@playwright/cli/node_modules/playwright-core/lib/tools/cli-client/session.js:167
+    const rejectWithPid = (reject, message) => reject(Object.assign(new Error(`Daemon pid=${child.pid}: ${message}`), { daemonPid: child.pid }));
+                                                                    ^
+
+Error: Daemon pid=31575: Browser "chrome-for-testing" is not installed. Run `playwright-cli install-browser chrome-for-testing` to install
+    at rejectWithPid (/Users/lau/.nvm/versions/node/v20.20.2/lib/node_modules/@playwright/cli/node_modules/playwright-core/lib/tools/cli-client/session.js:167:69)
+    at Socket.<anonymous> (/Users/lau/.nvm/versions/node/v20.20.2/lib/node_modules/@playwright/cli/node_modules/playwright-core/lib/tools/cli-client/session.js:177:11)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23) {
+  daemonPid: 31575
+}
+
+Node.js v20.20.2

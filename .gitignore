@@ -2,18 +2,15 @@
 .venv/
 venv/
 
-# Data & logs
-data/*.sqlite
-data/*.sqlite-journal
+# 运行日志(每天会变,无需入库)
 logs/*.log
 logs/*.out
 logs/*.err
+data/*.sqlite-journal
 
-# Secrets
+# Secrets — key 文件本机才有,新机走 .env.example 模板
 .env
-
-# Private THESIS (含个人资产规模等敏感原文，公开版见 THESIS_PUBLIC.md)
-THESIS.md
+.ralph/.token
 
 # Python
 __pycache__/
@@ -22,14 +19,8 @@ __pycache__/
 .pytest_cache/
 
 # Ralph runtime
-.ralph/iteration.txt
 .ralph/loop_runs.log
-.ralph/visual_check_iter*/
-.ralph/.token
 .playwright-cli/
-
-# Backtest outputs (iter 52+)
-data/backtest_results/
 
 # OS
 .DS_Store
@@ -37,3 +28,7 @@ data/backtest_results/
 # IDE
 .idea/
 .vscode/
+
+# Note: 仓库已 private(2026-05-18),THESIS.md / data/*.sqlite /
+# data/backtest_results / .ralph/iteration.txt / .ralph/visual_iter*/
+# 都同步 push,方便新机 clone 后立刻可用。

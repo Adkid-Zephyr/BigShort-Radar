@@ -1,0 +1,18 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+.idea/
+.vscode/
+.DS_Store
+logs/*.log
+logs/*.out
+logs/*.err
+.playwright-cli/
+# 不复制本机 .env 到 image(走 docker-compose environment 注入)
+.env
+.ralph/.token
+.ralph/loop_runs.log
+node_modules/

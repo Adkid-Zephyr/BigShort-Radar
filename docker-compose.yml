@@ -1,0 +1,30 @@
+# BigShort Radar — docker-compose
+# 用法:
+#   1. cp .env.example .env  ← 填 FRED_API_KEY 等(见 README "Key 清单")
+#   2. docker-compose up -d  ← 启动 Flask,访问 http://localhost:5050
+#   3. docker-compose run --rm radar python -m scripts.daily_fetch  ← 拉每日数据
+#   4. docker-compose run --rm radar python -m scripts.backfill_history --start 2020-01-01  ← 回填历史
+
+services:
+  radar:
+    build: .
+    container_name: bigshort-radar
+    ports:
+      - "${FLASK_PORT:-5050}:5050"
+    environment:
+      # 从 .env 读 key;若 .env 缺这些值,容器内的 LLM/FRED 功能降级
+      FRED_API_KEY: ${FRED_API_KEY:-}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_BASE_URL: ${DASHSCOPE_BASE_URL:-https://coding.dashscope.aliyuncs.com/v1}
+      DASHSCOPE_MODEL: ${DASHSCOPE_MODEL:-qwen3-coder-plus}
+      TZ: ${TZ:-Asia/Shanghai}
+      FLASK_PORT: 5050
+      FLASK_DEBUG: ${FLASK_DEBUG:-0}
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      # 数据库 + 日志持久化(从 git clone 到的 sqlite 也会被复用)
+      - ./data:/app/data
+      - ./logs:/app/logs
+      # ralph 运行时(可选)
+      - ./.ralph:/app/.ralph
+    restart: unless-stopped

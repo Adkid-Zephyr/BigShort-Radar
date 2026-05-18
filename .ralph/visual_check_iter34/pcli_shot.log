@@ -1,0 +1,3 @@
+The browser 'fr_visual' is not open, please run open first
+
+  playwright-cli -s=fr_visual open [params]
